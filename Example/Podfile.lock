@@ -1,0 +1,27 @@
+PODS:
+  - ct-sheet-ios (0.1.0)
+  - FBSnapshotTestCase (2.1.4):
+    - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
+  - FBSnapshotTestCase/Core (2.1.4)
+  - FBSnapshotTestCase/SwiftSupport (2.1.4):
+    - FBSnapshotTestCase/Core
+
+DEPENDENCIES:
+  - ct-sheet-ios (from `../`)
+  - FBSnapshotTestCase (~> 2.1.4)
+
+SPEC REPOS:
+  trunk:
+    - FBSnapshotTestCase
+
+EXTERNAL SOURCES:
+  ct-sheet-ios:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  ct-sheet-ios: 37f5a4e0cf323ec77ad6c9715544192b8f82d566
+  FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
+
+PODFILE CHECKSUM: 14a4bb355d2269ad0868ecab01c19ad68c62dc6e
+
+COCOAPODS: 1.10.0
