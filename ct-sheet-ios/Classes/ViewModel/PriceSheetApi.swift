@@ -12,7 +12,6 @@ import RxSwift
 import ct_common_ios
 
 public enum PriceSheetApi {
-    
     // 房价看板
     case housePriceConsoleApi(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)
 

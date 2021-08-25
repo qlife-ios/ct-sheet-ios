@@ -17,22 +17,19 @@ public class PriceSheetViewModel {
     
     let disposeBag = DisposeBag()
     
-    let billDetailListOutput = PublishSubject<BillDetailListModel>()
-
-    let billMarkOutput = PublishSubject<Bool>()
+    let housePricesOutput = PublishSubject<[DayModel]>()
 
     let errorObservable = PublishSubject<ErrorModel>()
 
     init(input: input) {
         
-        input.billMarkConfirmObservable?.flatMapLatest({ para -> Single<Result<Bool, ErrorModel>>  in
-            let request = MultiTarget(BillIncomeAPi.billMarkConfirmApi(ownerBillId: para))
-            return CTAPIProvider.rx.CTrequest(request).mapBool()
-
+        input.housePriceConsoleObservable?.flatMapLatest({ para -> Single<Result<[DayModel], ErrorModel>>  in
+            let request = MultiTarget(PriceSheetApi.housePriceConsoleApi(curPage: para.curPage, productIds: para.productIds, channels: para.channels, fromDate: para.fromDate, endDate: para.endDate))
+            return CTAPIProvider.rx.CTrequest(request).mapArray(dataType: DayModel.self)
         }).subscribe(onNext: {[unowned self] (res) in
             switch res{
             case.success(let arr):
-                self.billMarkOutput.onNext(arr)
+                self.housePricesOutput.onNext(arr)
             case.failure(let error):
                 self.errorObservable.onNext(error)
             }
@@ -44,8 +41,8 @@ extension PriceSheetViewModel{
     
     struct input {
         
-        // 结算单列表
-        let settlementBillObservable: Observable<(curPage: Int,ownerBillId: String, billType: Int,houseId: String? ,month: Int?, manageType: Int?, isAdvance: Bool)>?
+        // 房价看板
+        let housePriceConsoleObservable: Observable<(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)>?
     
     }
 }
