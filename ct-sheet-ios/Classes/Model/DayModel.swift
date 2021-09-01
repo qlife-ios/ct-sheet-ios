@@ -8,14 +8,19 @@ import boss_basic_common_ios
 
 @objc public  class DayModel : NSObject, NSCoding, BOSSModelProtocol {
 
-	var produtPriceList : [ProdutPriceModel]!
-	var date : Int!
-	var dateHoliday : String!
-	var dateName : String!
-	var dateType : Int!
-	var dateWorkState : Int!
-	var dayStock : DayStock!
+	var produtPriceList : [ProdutPriceModel]!   // 不同房型的房价列表
+	var date : Int!   // 日期
+	var dateHoliday : String!  // 节假日
+	var dateName : String!   // 节假日名称
+	var dateType : Int!       // 日期类型 -1空 0补班 1假日当天 2假日 3不放假的假日
+	var dateWorkState : Int!  // 节假日是否上班 -1空 0不上班 1上班
+	var dayStock : DayStock!   // 当日库存情况
 
+    // 展示日期
+    var dayStr: Int = 1
+    // 是不是今天
+    var isToday: Bool = false
+    
 	/**
 	 * Instantiate the instance using the passed json values to set the properties values
 	 */
@@ -38,6 +43,9 @@ import boss_basic_common_ios
 		if !dayStockJson.isEmpty{
 			dayStock = DayStock(fromJson: dayStockJson)
 		}
+        let inDate = Date.intChangeDate(resultDate: self.date ?? 0)
+        isToday = inDate.isToday()
+        dayStr = inDate.getYearMonthAndDay().2
 		
 	}
 

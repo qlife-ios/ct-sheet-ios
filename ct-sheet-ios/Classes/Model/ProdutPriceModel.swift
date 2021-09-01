@@ -9,9 +9,9 @@ import boss_basic_common_ios
 @objc public  class ProdutPriceModel : NSObject, NSCoding, BOSSModelProtocol {
 
 
-	var id : String!
-	var channelPriceModel : [ChannelPriceModel]!
-	var name : String!
+	var id : String!  // 房型id
+	var channelPriceModel : [ChannelPriceModel]!  // 各渠道价格信息
+	var name : String! // 房型名称
 
 
 	/**

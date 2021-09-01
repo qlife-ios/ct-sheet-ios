@@ -10,9 +10,33 @@ import boss_basic_common_ios
 @objc public  class ChannelPriceModel : NSObject, NSCoding, BOSSModelProtocol {
 
 
-	var allowStock : Int!
-	var channel : Int!
-	var price : Int!
+	var allowStock : Int! // 可用库存
+	var channel : Int! // 渠道
+	var price : Int! // 价格
+
+    var channelImg: String?{
+        get{
+            switch self.channel {
+                case 10:
+                    return "channel_tujia"
+                    
+                case 20:
+                    return "channel_airbnb"
+                    
+                case 30:
+                    return "channel_xiaozhu"
+                    
+                case 40:
+                    return "channel_zhenguo"
+                    
+                case .none:
+                    return ""
+                    
+                case .some(_):
+                    return ""
+            }
+        }
+    }
 
 
 	/**
