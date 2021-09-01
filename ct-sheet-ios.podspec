@@ -35,8 +35,7 @@ TODO: Add long description of the pod here.
    s.resource_bundles = {
      'ct-sheet-ios' => ['ct-sheet-ios/Assets/*']
    }
-
-
+   
   s.dependency 'ct-common-ios'
 
 end

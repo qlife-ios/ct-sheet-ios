@@ -33,16 +33,48 @@ public class PriceSheetVC: BossViewController {
     
     var linkageSheetView: CXLinkageSheetView = CXLinkageSheetView.init()
     
+    var leftDataArray: [String] = []
+    
+    var rightDataArray: [String] = []
+
+    var rightDetailArray: [[String]] = []
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
     }
     
     func setupUI() {
+        
+        for i in 1...20 {
+            self.leftDataArray.append("左边\(i)")
+        }
+        
+        for i in 1...20 {
+            self.rightDataArray.append("右上边\(i)")
+        }
+        
+        for i in 1...20{
+            var arrM: [String] = []
+            for j in 1...20 {
+                arrM.append("内容\(i)--\(j)")
+            }
+            self.rightDetailArray.append(arrM)
+        }
+        
         self.linkageSheetView = CXLinkageSheetView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight - 100))
         self.linkageSheetView.center = self.view.center
         self.view.addSubview(self.linkageSheetView)
-        
-        
+        self.linkageSheetView.sheetHeaderHeight = 60
+        self.linkageSheetView.sheetRowHeight = 50
+        self.linkageSheetView.sheetLeftTableWidth = 120
+        self.linkageSheetView.sheetRightTableWidth = 120
+        self.linkageSheetView.showAllSheetBorder = true
+        self.linkageSheetView.pagingEnabled = true
+        self.linkageSheetView.leftTableCount = self.leftDataArray.count
+        self.linkageSheetView.rightTableCount = self.rightDataArray.count
+        self.linkageSheetView.dataSource = self
+        self.linkageSheetView.showScrollShadow = true
+        self.linkageSheetView.reloadData()
         
     }
     
@@ -60,6 +92,42 @@ public class PriceSheetVC: BossViewController {
 }
 
 extension PriceSheetVC: CXLinkageSheetViewDataSource {
+    
+    public func createLeftItem(withContentView contentView: UIView?, indexPath: IndexPath?) -> UIView? {
+        var lab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contentView?.width ?? 0, height: contentView?.height ?? 0))
+        if self.leftDataArray.count > 0 {
+            if  let index = indexPath{
+                lab.text = self.leftDataArray[index.row]
+            }
+        }
+        return lab
+    }
+    
+    public func createRightItem(withContentView contentView: UIView?, indexPath: IndexPath?, itemIndex: Int) -> UIView? {
+        let lab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contentView?.width ?? 0, height: contentView?.height ?? 0))
+        if self.leftDataArray.count > 0 {
+            if  let index = indexPath{
+                lab.text = "内容呀"
+            }
+        }
+        return lab
+    }
+    
+    
+    public func rightTitleView(_ titleContentView: UIView?, index: Int) -> UIView? {
+        let lab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: titleContentView?.width ?? 0, height: titleContentView?.height ?? 0))
+        if self.leftDataArray.count > 0 {
+                lab.text = self.rightDataArray[index]
+        }
+        return lab
+    }
+    
+    public func leftTitleView(_ titleContentView: UIView?) -> UIView? {
+        let lab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: titleContentView?.width ?? 0, height: titleContentView?.height ?? 0))
+        lab.text = "标题呀"
+        return lab
+    }
+    
     
     
 }
