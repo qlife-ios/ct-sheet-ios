@@ -16,6 +16,8 @@ import RxViewController
 import Toast_Swift
 import boss_basic_common_ios
 
+var lineWidthHeight: CGFloat = 0.5
+
 public class PriceSheetVC: BossViewController {
     
     private var priceHouseEvent = PublishSubject<(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)>()
@@ -25,13 +27,7 @@ public class PriceSheetVC: BossViewController {
     private let disposeBag = DisposeBag()
     
     var linkageSheetView: CXLinkageSheetView = CXLinkageSheetView.init()
-    
-    var leftDataArray: [String] = []
-    
-    var rightDataArray: [String] = []
-
-    var rightDetailArray: [[String]] = []
-    
+        
     var colorArr: [String] = []
     
     var allDate: [DayModel] = []
@@ -63,7 +59,6 @@ public class PriceSheetVC: BossViewController {
         self.colorArr = ["ct_71BEFF","ct_FF839D","ct_FFDD5C"]
         self.setupUI()
         self.bindViewModel()
-        
     }
     
     func setupUI() {
@@ -79,21 +74,18 @@ public class PriceSheetVC: BossViewController {
         self.linkageSheetView.dataSource = self
         self.linkageSheetView.delegate = self
         self.view.addSubview(self.linkageSheetView)
-        
         self.linkageSheetView.sheetHeaderHeight = 62
         self.linkageSheetView.sheetRowHeight = 50
         self.linkageSheetView.sheetLeftTableWidth = 122
         self.linkageSheetView.sheetRightTableWidth = 52
         self.linkageSheetView.showAllSheetBorder = true
         self.linkageSheetView.pagingEnabled = true
-        self.linkageSheetView.leftTableCount = self.leftDataArray.count
         self.linkageSheetView.rightTableCount = self.allDate.count
         self.linkageSheetView.outLineColor = UIColor.init(named: "ct_E1E1E1")
         self.linkageSheetView.innerLineColor = UIColor.init(named: "ct_E1E1E1")
-        self.linkageSheetView.outLineWidth = 1.0
-        self.linkageSheetView.innerLineWidth = 1.0
-        self.linkageSheetView.scrollShadowWidth = 5
-        self.linkageSheetView.showScrollShadow = true
+        self.linkageSheetView.outLineWidth = lineWidthHeight
+        self.linkageSheetView.innerLineWidth = lineWidthHeight
+        self.linkageSheetView.showScrollShadow = false
         self.linkageSheetView.reloadData()
     }
     
@@ -116,10 +108,13 @@ public class PriceSheetVC: BossViewController {
             self.allDate = arr
             if self.allDate.count > 0 {
                 let model = self.allDate[0]
-                self.linkageSheetView.leftTableCount = model.produtPriceList.count
+                let list = model.produtPriceList
+                if let listArr = list, listArr.count > 0{
+                    let productModel = model.produtPriceList[0]
+                    self.linkageSheetView.leftTableCount = model.produtPriceList.count *  productModel.channelPriceModel.count
+                }
             }
             self.linkageSheetView.rightTableCount = self.allDate.count
-
             self.linkageSheetView.reloadData()
 
         }).disposed(by: disposeBag)
@@ -216,7 +211,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         allView.addSubview(leftBgView)
         
         // 房型名称
-        let nameView: UITextView = UITextView.init(frame: CGRect.init(x: 8, y: 0, width: 80, height: allHeight))
+        let nameView: UITextView = UITextView.init(frame: CGRect.init(x: 8, y: 0, width: 80, height: allHeight - 0.5))
         nameView.textColor = UIColor.init(named: "ct_000000-65")
         nameView.font = UIFont.boldSystemFont(ofSize: 14)
         nameView.text = productModel.name
@@ -229,7 +224,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
             nameView.contentInset = offset
         }
         allView.addSubview(nameView)
-        let lineView: UIView = UIView.init(frame: CGRect.init(x: 88.0, y: 0, width: 1, height:allHeight))
+        let lineView: UIView = UIView.init(frame: CGRect.init(x: 88.0, y: 0, width: lineWidthHeight , height:allHeight))
         lineView.backgroundColor = UIColor.init(named: "ct_E1E1E1")
         allView.addSubview(lineView)
         
@@ -242,7 +237,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
             imgView.image = UIImage.init(named: channelModel.channelImg ?? "")
             channelView.addSubview(imgView)
             if i != channleCount - 1 {
-                let line1View: UIView = UIView.init(frame: CGRect.init(x: 0, y:  49 , width: 32.0, height: 1.0))
+                let line1View: UIView = UIView.init(frame: CGRect.init(x: 0, y:  49.5 , width: 32.0, height: lineWidthHeight))
                 line1View.backgroundColor = UIColor.init(named: "ct_E1E1E1")
                 channelView.addSubview(line1View)
             }
@@ -315,11 +310,9 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
             let priceModel =  model.channelPriceModel[indexPath?.row ?? 0]
             if priceModel.price >= 0{
                 priceLab.text =  "¥" + String(format:"%d",Int(priceModel.price)/100)
-
             }else{
                 priceLab.text = "¥--"
             }
-            
             if priceModel.allowStock >= 0{
                 surplusLab.text = "余" + String(priceModel.allowStock)
             }else{
@@ -329,8 +322,9 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
             priceLab.text = "¥--"
             surplusLab.text = "余--"
         }
+        let lineView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 49.5, width: 52, height:lineWidthHeight))
+        lineView.backgroundColor = UIColor.init(named: "ct_E1E1E1")
+        contView.addSubview(lineView)
         return contView
-
     }
-    
 }
