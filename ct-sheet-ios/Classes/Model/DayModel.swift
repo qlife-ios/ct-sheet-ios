@@ -21,6 +21,11 @@ import boss_basic_common_ios
     // 是不是今天
     var isToday: Bool = false
     
+    
+    var weekStr: Int = 1
+    
+    var showWeek: String = "一"
+    
 	/**
 	 * Instantiate the instance using the passed json values to set the properties values
 	 */
@@ -45,8 +50,29 @@ import boss_basic_common_ios
 		}
         let inDate = Date.intChangeDate(resultDate: self.date ?? 0)
         isToday = inDate.isToday()
+        
         dayStr = inDate.getYearMonthAndDay().2
-		
+        
+        let dateFormater = Date.intChangeDate(resultDate: date ?? 0)
+        self.weekStr = dateFormater.getDateWeekDay()
+        switch self.weekStr {
+            case 1:
+                self.showWeek = "一"
+            case 2:
+                self.showWeek = "二"
+            case 3:
+                self.showWeek = "三"
+            case 4:
+                self.showWeek = "四"
+            case 5:
+                self.showWeek = "五"
+            case 6:
+                self.showWeek = "六"
+            case 7:
+                self.showWeek = "日"
+            default:
+                self.showWeek = "一"
+        }
 	}
 
 	/**
