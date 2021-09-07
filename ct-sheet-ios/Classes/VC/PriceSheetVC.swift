@@ -67,7 +67,15 @@ public class PriceSheetVC: BossViewController {
     }
     
     func setupUI() {
-        self.linkageSheetView = CXLinkageSheetView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight - 100))
+        var viewHeight = screenHeight - 64
+        var isphoneX : Bool = false
+        if (screenWidth == 375 && screenHeight == 812 )||(screenWidth == 414 && screenHeight == 896){
+            isphoneX = true
+        }
+        if  isphoneX {
+            viewHeight = screenHeight - 88 - 34
+         }
+        self.linkageSheetView = CXLinkageSheetView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: viewHeight))
         self.linkageSheetView.dataSource = self
         self.linkageSheetView.delegate = self
         self.view.addSubview(self.linkageSheetView)
@@ -80,12 +88,11 @@ public class PriceSheetVC: BossViewController {
         self.linkageSheetView.pagingEnabled = true
         self.linkageSheetView.leftTableCount = self.leftDataArray.count
         self.linkageSheetView.rightTableCount = self.allDate.count
-        self.linkageSheetView.outLineColor = .gray
-//            UIColor.init(named: "ct_E1E1E1")
-        self.linkageSheetView.innerLineColor = .gray
-//            UIColor.init(named: "ct_E1E1E1")
-        self.linkageSheetView.outLineWidth = 1
-        self.linkageSheetView.innerLineWidth = 1
+        self.linkageSheetView.outLineColor = UIColor.init(named: "ct_E1E1E1")
+        self.linkageSheetView.innerLineColor = UIColor.init(named: "ct_E1E1E1")
+        self.linkageSheetView.outLineWidth = 1.0
+        self.linkageSheetView.innerLineWidth = 1.0
+        self.linkageSheetView.scrollShadowWidth = 5
         self.linkageSheetView.showScrollShadow = true
         self.linkageSheetView.reloadData()
     }
@@ -134,7 +141,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     public func rightTableView(_ tableView: UITableView?, didSelectRowAt indexPath: IndexPath?, andItemIndex itemIndex: Int) {
         
     }
-    
+
     // 表格section 数目
     public func numberOfSectionsInSheetView() -> Int {
         if self.allDate.count > 0 {
@@ -169,12 +176,11 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         let productModel = model.produtPriceList[indexPath?.section ?? 0]
         // 渠道数量
         let channleCount = productModel.channelPriceModel.count
-        
         return 50.0 * CGFloat(channleCount)
     }
 
     public func heightForRightSheetViewForRow(at indexPath: IndexPath?) -> CGFloat {
-        return 50
+        return 50.0
     }
     
     // 日期选择 -- 表格左上角视图
@@ -274,7 +280,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
             }
             
             lab2.text = String(model.dayStr)
-            if model.isToday == true{
+            if model.isToday == true {
                 lab2.textColor = .white
                 lab1.textColor = UIColor.init(named: "ct_F09A19")
                 lab2.backgroundColor = UIColor.init(named: "buttonBg_F38C27")
@@ -293,25 +299,35 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     // 自定义表格右侧每一个格子的视图
     public func createRightItem(withContentView contentView: UIView?, indexPath: IndexPath?, itemIndex: Int) -> UIView? {
         let contView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: contentView?.width ?? 0, height: contentView?.height ?? 0))
-        let priceLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 5, width: contView.width , height: 20))
-        priceLab.textColor = UIColor.init(named: "ct_000000-20_FFFFFF-20")
-        priceLab.font = UIFont.systemFont(ofSize: 12)
+        let priceLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contView.width, height: 20))
+        priceLab.textColor = UIColor.init(named: "ct_000000-85_FFFFFF-85")
+        priceLab.font = UIFont.boldSystemFont(ofSize: 12)
         priceLab.textAlignment = .center
         contView.addSubview(priceLab)
         let surplusLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: priceLab.bottom + 5, width: contView.width , height:20))
-        surplusLab.textColor = UIColor.init(named: "ct_000000-65")
-        surplusLab.font = UIFont.boldSystemFont(ofSize: 16)
+        surplusLab.textColor = UIColor.init(named: "ct_000000-50")
+        surplusLab.font = UIFont.systemFont(ofSize: 12)
         surplusLab.textAlignment = .center
         contView.addSubview(surplusLab)
         if self.allDate.count > 0 {
             let modelArr = self.allDate[itemIndex]
             let model = modelArr.produtPriceList[indexPath?.section ?? 0]
             let priceModel =  model.channelPriceModel[indexPath?.row ?? 0]
-            priceLab.text = String(priceModel.price)
-            surplusLab.text = String(priceModel.price)
+            if priceModel.price >= 0{
+                priceLab.text =  "¥" + String(format:"%d",Int(priceModel.price)/100)
+
+            }else{
+                priceLab.text = "¥--"
+            }
+            
+            if priceModel.allowStock >= 0{
+                surplusLab.text = "余" + String(priceModel.allowStock)
+            }else{
+                surplusLab.text = "余0"
+            }
         }else{
-            priceLab.text = "--"
-            surplusLab.text = "--"
+            priceLab.text = "¥--"
+            surplusLab.text = "余--"
         }
         return contView
 

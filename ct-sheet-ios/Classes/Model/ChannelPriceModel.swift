@@ -45,9 +45,19 @@ import boss_basic_common_ios
 		if json.isEmpty{
 			return
 		}
-		allowStock = json["allow_stock"].intValue
+        if json["allow_stock"].stringValue.count > 0 {
+            allowStock = json["allow_stock"].intValue
+        }else{
+            allowStock = -1
+        }
+        
+        if json["price"].stringValue.count > 0 {
+            price = json["price"].intValue
+        }else{
+            price = -1
+        }
 		channel = json["channel"].intValue
-        price = json["price"].intValue
+
 	}
 
 	/**
