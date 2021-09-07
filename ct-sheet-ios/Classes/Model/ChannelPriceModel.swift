@@ -13,7 +13,6 @@ import boss_basic_common_ios
 	var allowStock : Int! // 可用库存
 	var channel : Int! // 渠道
 	var price : Int! // 价格
-
     var channelImg: String?{
         get{
             switch self.channel {

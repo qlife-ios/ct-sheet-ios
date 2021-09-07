@@ -68,7 +68,10 @@ public class PriceSheetVC: BossViewController {
     
     func setupUI() {
         self.linkageSheetView = CXLinkageSheetView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight - 100))
+        self.linkageSheetView.dataSource = self
+        self.linkageSheetView.delegate = self
         self.view.addSubview(self.linkageSheetView)
+        
         self.linkageSheetView.sheetHeaderHeight = 62
         self.linkageSheetView.sheetRowHeight = 50
         self.linkageSheetView.sheetLeftTableWidth = 122
@@ -77,10 +80,12 @@ public class PriceSheetVC: BossViewController {
         self.linkageSheetView.pagingEnabled = true
         self.linkageSheetView.leftTableCount = self.leftDataArray.count
         self.linkageSheetView.rightTableCount = self.allDate.count
-        self.linkageSheetView.outLineColor = UIColor.init(named: "ct_E1E1E1")
-        self.linkageSheetView.innerLineColor = UIColor.init(named: "ct_E1E1E1")
-        self.linkageSheetView.dataSource = self
-        self.linkageSheetView.delegate = self
+        self.linkageSheetView.outLineColor = .gray
+//            UIColor.init(named: "ct_E1E1E1")
+        self.linkageSheetView.innerLineColor = .gray
+//            UIColor.init(named: "ct_E1E1E1")
+        self.linkageSheetView.outLineWidth = 1
+        self.linkageSheetView.innerLineWidth = 1
         self.linkageSheetView.showScrollShadow = true
         self.linkageSheetView.reloadData()
     }
@@ -141,7 +146,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     
     // 表格section的头部视图高度
     public func heightForSheetViewHeader(inSection section: Int) -> CGFloat {
-        return 1
+        return 0.01
     }
     
     // 左边 每组的行数
@@ -196,30 +201,46 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         let productModel = model.produtPriceList[indexPath?.section ?? 0]
         // 渠道数量
         let channleCount = productModel.channelPriceModel.count
-        let allView: UIView = UIView.init()
-        
-        let bgView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: 8, height: 50 * channleCount))
+        let allHeight: CGFloat = 50.0 * CGFloat(channleCount)
+
+        let allView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: 122, height: allHeight))
+        let leftBgView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: 8, height: allHeight))
         let section: Int = (indexPath?.section ?? 0 + 3) % 3
-        bgView.backgroundColor = UIColor.init(named: self.colorArr[section])
-        allView.addSubview(bgView)
+        leftBgView.backgroundColor = UIColor.init(named: self.colorArr[section])
+        allView.addSubview(leftBgView)
         
-        let nameView: UITextView = UITextView.init(frame: CGRect.init(x: 8, y: 0, width: 80, height: 50 * channleCount))
+        // 房型名称
+        let nameView: UITextView = UITextView.init(frame: CGRect.init(x: 8, y: 0, width: 80, height: allHeight))
         nameView.textColor = UIColor.init(named: "ct_000000-65")
-        nameView.font = UIFont.boldSystemFont(ofSize: 24)
+        nameView.font = UIFont.boldSystemFont(ofSize: 14)
         nameView.text = productModel.name
+        nameView.textAlignment = .center
+        let contentSize: CGSize = nameView.contentSize
+        if contentSize.height < allHeight {
+            // 居中展示
+            let offsetY: CGFloat = (nameView.height - contentSize.height) / 2.0
+            let offset = UIEdgeInsets.init(top: offsetY, left: 0, bottom: 0, right: 0)
+            nameView.contentInset = offset
+        }
         allView.addSubview(nameView)
-        
-        let lineView: UIView = UIView.init(frame: CGRect.init(x: 88.0, y: 0, width: 1, height: 50.0 * Double(channleCount)))
-        lineView.backgroundColor = .gray
+        let lineView: UIView = UIView.init(frame: CGRect.init(x: 88.0, y: 0, width: 1, height:allHeight))
+        lineView.backgroundColor = UIColor.init(named: "ct_E1E1E1")
         allView.addSubview(lineView)
         
+        let channelList: [ChannelPriceModel] = productModel.channelPriceModel
+        // 渠道
         for i  in 0...channleCount - 1 {
-            let imgView: UIImageView = UIImageView.init(frame: CGRect.init(x: 89, y: 50 * i, width: 34, height: 50))
-            imgView.image = UIImage.init(named: "channel_tujia")
-            allView.addSubview(imgView)
-            let line1View: UIView = UIView.init(frame: CGRect.init(x: 89.0, y:  49.0 * Double(i) + 50.0, width: 34.0, height: 1.0))
-            line1View.backgroundColor = .gray
-            allView.addSubview(line1View)
+            let channelView: UIView = UIView.init(frame: CGRect.init(x: 89, y: 50 * i, width: 32, height: 50))
+            let imgView: UIImageView = UIImageView.init(frame: CGRect.init(x: 3, y: 12, width: 24, height: 24))
+            let channelModel = channelList[i]
+            imgView.image = UIImage.init(named: channelModel.channelImg ?? "")
+            channelView.addSubview(imgView)
+            if i != channleCount - 1 {
+                let line1View: UIView = UIView.init(frame: CGRect.init(x: 0, y:  49 , width: 32.0, height: 1.0))
+                line1View.backgroundColor = UIColor.init(named: "ct_E1E1E1")
+                channelView.addSubview(line1View)
+            }
+            allView.addSubview(channelView)
         }
         return allView
     }
