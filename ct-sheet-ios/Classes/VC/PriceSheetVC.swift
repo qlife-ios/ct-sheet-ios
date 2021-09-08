@@ -146,11 +146,6 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         return 0
     }
     
-    // 表格section的头部视图高度
-    public func heightForSheetViewHeader(inSection section: Int) -> CGFloat {
-        return 0.01
-    }
-    
     // 左边 每组的行数
     public func numberOfRows(inLeftSheetViewSection section: Int) -> Int {
         return 1
@@ -203,7 +198,6 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         // 渠道数量
         let channleCount = productModel.channelPriceModel.count
         let allHeight: CGFloat = 50.0 * CGFloat(channleCount)
-
         let allView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: 122, height: allHeight))
         let leftBgView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: 8, height: allHeight))
         let section: Int = (indexPath?.section ?? 0 + 3) % 3
@@ -294,6 +288,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     // 自定义表格右侧每一个格子的视图
     public func createRightItem(withContentView contentView: UIView?, indexPath: IndexPath?, itemIndex: Int) -> UIView? {
         let contView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: contentView?.width ?? 0, height: contentView?.height ?? 0))
+        contView.isUserInteractionEnabled = false
         let priceLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contView.width, height: 20))
         priceLab.textColor = UIColor.init(named: "ct_000000-85_FFFFFF-85")
         priceLab.font = UIFont.boldSystemFont(ofSize: 12)
