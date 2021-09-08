@@ -13,6 +13,13 @@ import boss_basic_common_ios
 	var allowStock : Int! // 可用库存
 	var channel : Int! // 渠道
 	var price : Int! // 价格
+    
+    var canChoose: Bool = false  //是否能选择
+    
+    var isBefore: Bool = true
+     
+    var selected: Bool = false  // 是否已经选择
+
     var channelImg: String?{
         get{
             switch self.channel {
@@ -53,8 +60,11 @@ import boss_basic_common_ios
         
         if json["price"].stringValue.count > 0 {
             price = json["price"].intValue
+            self.canChoose = true
+
         }else{
             price = -1
+            self.canChoose = false
         }
 		channel = json["channel"].intValue
 

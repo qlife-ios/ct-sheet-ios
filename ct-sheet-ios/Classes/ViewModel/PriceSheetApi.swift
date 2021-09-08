@@ -15,6 +15,9 @@ public enum PriceSheetApi {
     // 房价看板
     case housePriceConsoleApi(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)
 
+    // 修改房价
+    case housePriceUpdateApi(productId: String, dates: [Int], channel: Int ,price: Int)
+
 }
 
 extension PriceSheetApi: TargetType, AuthenticationProtocol{
@@ -42,6 +45,13 @@ extension PriceSheetApi: TargetType, AuthenticationProtocol{
                 if let channels = channels{
                     params["channels"] = channels
                 }
+                
+            case .housePriceUpdateApi(let productId,let dates,let channel ,let price):
+                params["product_id"] = productId
+                params["dates"] = dates
+                params["channel"] = channel
+                params["price"] = price
+
         }
         return .requestParameters(parameters: params, encoding: JSONEncoding.default)
     }
@@ -53,6 +63,12 @@ extension PriceSheetApi: TargetType, AuthenticationProtocol{
             case .housePriceConsoleApi(_,_,_,_,_):
                 return [
                     "X-CMD": "ct-tob.house.price.console"
+                ]
+                
+            // 改价
+            case .housePriceUpdateApi(_,_,_,_):
+                return [
+                    "X-CMD": "ct-tob.house.price.update_price"
                 ]
         }
     }

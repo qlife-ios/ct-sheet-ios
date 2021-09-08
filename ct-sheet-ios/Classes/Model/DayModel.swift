@@ -15,12 +15,12 @@ import boss_basic_common_ios
 	var dateType : Int!       // 日期类型 -1空 0补班 1假日当天 2假日 3不放假的假日
 	var dateWorkState : Int!  // 节假日是否上班 -1空 0不上班 1上班
 	var dayStock : DayStock!   // 当日库存情况
+    var isBefore: Bool = true
 
     // 展示日期
     var dayStr: Int = 1
     // 是不是今天
     var isToday: Bool = false
-    
     
     var weekStr: Int = 1
     
@@ -33,12 +33,7 @@ import boss_basic_common_ios
 		if json.isEmpty{
 			return
 		}
-        produtPriceList = [ProdutPriceModel]()
-		let produtPriceModelArray = json["product_prices"].arrayValue
-		for produtPriceModelJson in produtPriceModelArray{
-			let value = ProdutPriceModel(fromJson: produtPriceModelJson)
-            produtPriceList.append(value)
-		}
+     
 		date = json["date"].intValue
 		dateHoliday = json["date_holiday"].stringValue
 		dateName = json["date_name"].stringValue
@@ -50,9 +45,14 @@ import boss_basic_common_ios
 		}
         let inDate = Date.intChangeDate(resultDate: self.date ?? 0)
         isToday = inDate.isToday()
-        
         dayStr = inDate.getYearMonthAndDay().2
-        
+        self.isBefore = inDate.isBefore()
+        produtPriceList = [ProdutPriceModel]()
+        let produtPriceModelArray = json["product_prices"].arrayValue
+        for produtPriceModelJson in produtPriceModelArray{
+            let value = ProdutPriceModel(fromJson: produtPriceModelJson)
+            produtPriceList.append(value)
+        }
         let dateFormater = Date.intChangeDate(resultDate: date ?? 0)
         self.weekStr = dateFormater.getDateWeekDay()
         switch self.weekStr {

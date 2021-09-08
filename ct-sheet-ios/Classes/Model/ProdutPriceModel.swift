@@ -12,8 +12,7 @@ import boss_basic_common_ios
 	var id : String!  // 房型id
 	var channelPriceModel : [ChannelPriceModel]!  // 各渠道价格信息
 	var name : String! // 房型名称
-
-
+    var isBefore: Bool = true
 	/**
 	 * Instantiate the instance using the passed json values to set the properties values
 	 */

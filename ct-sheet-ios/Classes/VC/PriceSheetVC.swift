@@ -16,6 +16,7 @@ import RxViewController
 import Toast_Swift
 import boss_basic_common_ios
 
+// 线宽
 var lineWidthHeight: CGFloat = 0.5
 
 public class PriceSheetVC: BossViewController {
@@ -31,6 +32,8 @@ public class PriceSheetVC: BossViewController {
     var colorArr: [String] = []
     
     var allDate: [DayModel] = []
+    
+    var dateArr: [Int] = [] // 选择修改价格的日期
     
     // 左上角的选中的日期
     var showDate: String?
@@ -134,7 +137,28 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     
     // 右侧表格视图点击事件
     public func rightTableView(_ tableView: UITableView?, didSelectRowAt indexPath: IndexPath?, andItemIndex itemIndex: Int) {
-        
+        let modelArr = self.allDate[itemIndex]
+        let model = modelArr.produtPriceList[indexPath?.section ?? 0]
+        let priceModel = model.channelPriceModel[indexPath?.row ?? 0]
+        if priceModel.canChoose == false ||  priceModel.isBefore == true {
+            return
+        }
+        priceModel.selected = !priceModel.selected
+        if priceModel.selected == true {
+            self.dateArr.append(modelArr.date)
+        }else{
+            self.dateArr.filter {_ in
+                self.dateArr.contains(modelArr.date)
+            }
+        }
+      
+        let indexN = indexPath ?? IndexPath.init(row: 0, section: 0)
+        DispatchQueue.main.async {
+            self.linkageSheetView.rightTableView.reloadRows(at: [indexN], with: .automatic)
+        }
+        if self.dateArr.count > 0 { // 调起键盘
+            
+        }
     }
 
     // 表格section 数目
@@ -180,7 +204,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         contView.addGestureRecognizer(selectDate)
         let lab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 15, width: contView.width , height: 25))
         lab.textColor = UIColor.init(named: "buttonBg_F38C27")
-        lab.font = UIFont.boldSystemFont(ofSize: 14)
+        lab.font = mediumFont(size: 14)
         lab.textAlignment = .center
         lab.text = self.showDate
         contView.addSubview(lab)
@@ -207,7 +231,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         // 房型名称
         let nameView: UITextView = UITextView.init(frame: CGRect.init(x: 8, y: 0, width: 80, height: allHeight - 0.5))
         nameView.textColor = UIColor.init(named: "ct_000000-65")
-        nameView.font = UIFont.boldSystemFont(ofSize: 14)
+        nameView.font = mediumFont(size: 14)
         nameView.text = productModel.name
         nameView.textAlignment = .center
         let contentSize: CGSize = nameView.contentSize
@@ -245,12 +269,12 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         let contView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: titleContentView?.width ?? 0, height: titleContentView?.height ?? 0))
         let lab1: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contView.width , height: 20))
         lab1.textColor = UIColor.init(named: "ct_000000-20_FFFFFF-20")
-        lab1.font = UIFont.systemFont(ofSize: 12)
+        lab1.font = regularFont(size: 12)
         lab1.textAlignment = .center
         contView.addSubview(lab1)
         let lab2: UILabel = UILabel.init(frame: CGRect.init(x: 9, y: lab1.bottom + 5, width: 34 , height:34))
         lab2.textColor = UIColor.init(named: "ct_000000-65")
-        lab2.font = UIFont.boldSystemFont(ofSize: 16)
+        lab2.font = regularFont(size: 16)
         lab2.textAlignment = .center
         contView.addSubview(lab2)
         if self.allDate.count > 0 {
@@ -260,12 +284,12 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
                 contView.backgroundColor = UIColor.init(named: "ct_FFF5E6")
                 lab1.text = model.dateName
                 lab1.textColor = UIColor.init(named: "ct_F09A19")
-                lab2.font = UIFont.boldSystemFont(ofSize: 16)
+                lab2.font = mediumFont(size: 16)
             }else{
                 lab1.textColor = UIColor.init(named: "ct_000000-30")
                 contView.backgroundColor = .white
                 lab1.text = model.showWeek
-                lab2.font = UIFont.systemFont(ofSize: 16)
+                lab2.font = regularFont(size: 16)
             }
             
             lab2.text = String(model.dayStr)
@@ -287,35 +311,55 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     
     // 自定义表格右侧每一个格子的视图
     public func createRightItem(withContentView contentView: UIView?, indexPath: IndexPath?, itemIndex: Int) -> UIView? {
-        let contView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: contentView?.width ?? 0, height: contentView?.height ?? 0))
+        let contWidth = contentView?.width ?? 1.0
+        let contView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width:contWidth - 1.0 , height: contentView?.height ?? 0))
         contView.isUserInteractionEnabled = false
-        let priceLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contView.width, height: 20))
+        let priceLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contView.width, height: 25))
         priceLab.textColor = UIColor.init(named: "ct_000000-85_FFFFFF-85")
-        priceLab.font = UIFont.boldSystemFont(ofSize: 12)
+        priceLab.font = mediumFont(size: 12)
         priceLab.textAlignment = .center
         contView.addSubview(priceLab)
-        let surplusLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: priceLab.bottom + 5, width: contView.width , height:20))
+        let surplusLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: priceLab.bottom , width: contView.width , height:25))
         surplusLab.textColor = UIColor.init(named: "ct_000000-50")
-        surplusLab.font = UIFont.systemFont(ofSize: 12)
+        surplusLab.font = regularFont(size: 12)
         surplusLab.textAlignment = .center
         contView.addSubview(surplusLab)
         if self.allDate.count > 0 {
             let modelArr = self.allDate[itemIndex]
+            let isBefore: Bool = modelArr.isBefore // 今天之前的日期
+            for everyModel in modelArr.produtPriceList {
+                everyModel.isBefore = isBefore
+                for channelModel in everyModel.channelPriceModel{
+                    channelModel.isBefore = isBefore
+                }
+            }
             let model = modelArr.produtPriceList[indexPath?.section ?? 0]
             let priceModel =  model.channelPriceModel[indexPath?.row ?? 0]
             if priceModel.price >= 0{
-                priceLab.text =  "¥" + String(format:"%d",Int(priceModel.price)/100)
+                priceLab.text =  "¥ " + String(format:"%d",Int(priceModel.price)/100)
             }else{
-                priceLab.text = "¥--"
+                priceLab.text = "¥ --"
             }
             if priceModel.allowStock >= 0{
-                surplusLab.text = "余" + String(priceModel.allowStock)
+                surplusLab.text = "余 " + String(priceModel.allowStock)
             }else{
-                surplusLab.text = "余0"
+                surplusLab.text = "余 0"
+            }
+            if priceModel.isBefore == true  || priceModel.canChoose == false{
+                contView.backgroundColor = UIColor.init(named: "ct_F1F1F1")
+            } else {
+                if priceModel.selected == true {
+                    priceLab.textColor = .white
+                    surplusLab.textColor = UIColor.init(named: "ct_FFFFFF-60")
+                    contView.backgroundColor = UIColor.init(named: "buttonBg_F38C27")
+                }else {
+                    contView.backgroundColor = .white
+                }
             }
         }else{
-            priceLab.text = "¥--"
-            surplusLab.text = "余--"
+            priceLab.text = "¥ --"
+            surplusLab.text = "余 --"
+            contView.backgroundColor = UIColor.init(named: "ct_F1F1F1")
         }
         let lineView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 49.5, width: 52, height:lineWidthHeight))
         lineView.backgroundColor = UIColor.init(named: "ct_E1E1E1")
