@@ -144,6 +144,47 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
             return
         }
         priceModel.selected = !priceModel.selected
+        
+        // 获取item
+        let indexN = indexPath ?? IndexPath.init(row: 0, section: 0)
+        let cell = tableView?.cellForRow(at: indexN) as? CXLinkageSheetRightCell
+        let item = cell?.itemArr[itemIndex] as? CXLinkageSheetRightItem
+        let itemSubArr: [UIView] = item?.subviews ?? [UIView.init()]
+        
+        // 改变item 颜色
+        if itemSubArr.count > 0 {
+            for itemSubview in itemSubArr {
+                if itemSubview.tag == 78 {
+                    if priceModel.selected == true {
+                        itemSubview.backgroundColor = UIColor.init(named: "buttonBg_F38C27")
+                    }else{
+                        itemSubview.backgroundColor = UIColor.white
+                    }
+                    let labArr: [UIView] = itemSubview.subviews ?? [UIView.init()]
+                    
+                    for labItem in labArr {
+                        if labItem is UILabel {
+                            let changeLab: UILabel = labItem as! UILabel
+                            if changeLab.tag == 7 {
+                                if priceModel.selected == true {
+                                    changeLab.textColor = UIColor.white
+                                }else{
+                                    changeLab.textColor = UIColor.init(named: "ct_000000-85_FFFFFF-85")
+                                }
+                            }
+                            if changeLab.tag == 8 {
+                                if priceModel.selected == true {
+                                    changeLab.textColor = UIColor.init(named: "ct_FFFFFF-60")
+                                }else{
+                                    changeLab.textColor = UIColor.init(named: "ct_000000-50")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         if priceModel.selected == true {
             self.dateArr.append(modelArr.date)
         }else{
@@ -151,11 +192,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
                 self.dateArr.contains(modelArr.date)
             }
         }
-      
-        let indexN = indexPath ?? IndexPath.init(row: 0, section: 0)
-        DispatchQueue.main.async {
-            self.linkageSheetView.rightTableView.reloadRows(at: [indexN], with: .automatic)
-        }
+     
         if self.dateArr.count > 0 { // 调起键盘
             
         }
@@ -313,16 +350,19 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     public func createRightItem(withContentView contentView: UIView?, indexPath: IndexPath?, itemIndex: Int) -> UIView? {
         let contWidth = contentView?.width ?? 1.0
         let contView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width:contWidth - 1.0 , height: contentView?.height ?? 0))
+        contView.tag = 78
         contView.isUserInteractionEnabled = false
         let priceLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: contView.width, height: 25))
         priceLab.textColor = UIColor.init(named: "ct_000000-85_FFFFFF-85")
         priceLab.font = mediumFont(size: 12)
+        priceLab.tag = 7
         priceLab.textAlignment = .center
         contView.addSubview(priceLab)
         let surplusLab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: priceLab.bottom , width: contView.width , height:25))
         surplusLab.textColor = UIColor.init(named: "ct_000000-50")
         surplusLab.font = regularFont(size: 12)
         surplusLab.textAlignment = .center
+        surplusLab.tag = 8
         contView.addSubview(surplusLab)
         if self.allDate.count > 0 {
             let modelArr = self.allDate[itemIndex]
@@ -345,16 +385,10 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
             }else{
                 surplusLab.text = "余 0"
             }
-            if priceModel.isBefore == true  || priceModel.canChoose == false{
+            if priceModel.isBefore == true  || priceModel.canChoose == false {
                 contView.backgroundColor = UIColor.init(named: "ct_F1F1F1")
             } else {
-                if priceModel.selected == true {
-                    priceLab.textColor = .white
-                    surplusLab.textColor = UIColor.init(named: "ct_FFFFFF-60")
-                    contView.backgroundColor = UIColor.init(named: "buttonBg_F38C27")
-                }else {
-                    contView.backgroundColor = .white
-                }
+                contView.backgroundColor = .white
             }
         }else{
             priceLab.text = "¥ --"
