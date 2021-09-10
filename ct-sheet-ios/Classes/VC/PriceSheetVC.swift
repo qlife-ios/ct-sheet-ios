@@ -16,6 +16,12 @@ import RxViewController
 import Toast_Swift
 import boss_basic_common_ios
 
+public enum LoadType : Int {
+    case lefeType              = 10         // 左边
+    case normal                = 20         // 正常
+    case rightType             = 30         // 右边
+}
+
 // 线宽
 var lineWidthHeight: CGFloat = 0.5
 
@@ -29,15 +35,29 @@ public class PriceSheetVC: BossViewController {
     
     var linkageSheetView: CXLinkageSheetView = CXLinkageSheetView.init()
         
+    // 颜色
     var colorArr: [String] = []
     
+    
+    // 所有数据
     var allDate: [DayModel] = []
     
     var dateArr: [Int] = [] // 选择修改价格的日期
     
-    // 左上角的选中的日期
+    // 从日历手动选择的日期  // 左上角的选中的日期
     var showDate: String?
     
+    // 展示日期
+    var dateLab: UILabel = UILabel.init()
+    
+    // 加载数据的起始日期
+    var startDate: Date = Date.init()
+    // 加载数据的结束日期
+    var endDate: Date = Date.init()
+    
+    // 加载状态
+    var loadType: LoadType = .normal
+
     open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         self.setNavColor()
     }
@@ -93,22 +113,22 @@ public class PriceSheetVC: BossViewController {
     }
     
     func bindViewModel() {
-        
         // 今天
-        let currentDate: Date = Date.init()
-        self.showDate = Date.changeTimesFormatContainYearMouthDay(date: currentDate).0
-        
-        let startParam =  Date.changeTimesFormatContainYearMouthDay(date: currentDate).1
-        // T-1 ~ T + 60
-        let endDate = Date.getRequestLaterDate(from: currentDate, withYear: 0, month: 0, day: 60)
-        let endParam = Date.changeTimesFormatContainYearMouthDay(date: endDate).1
-        
+        let currentDate = Date.init()
+        self.startDate = Date.getRequestLaterDate(from: currentDate, withYear: 0, month: 0, day: -1)
+        self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 30)
+        self.loadType = .normal
         let input = PriceSheetViewModel.input(housePriceConsoleObservable: self.priceHouseEvent)
         self.viewModel = PriceSheetViewModel.init(input: input)
-        
         self.viewModel?.housePricesOutput.subscribe(onNext:{[unowned self] (arr)  in
             self.view.dissmissLoadingView()
-            self.allDate = arr
+            if self.loadType == .normal{
+                self.allDate = arr
+            }else if self.loadType == .lefeType{
+                self.allDate.insert(contentsOf: arr, at: 0)
+            }else if self.loadType == .rightType{
+                self.allDate.append(contentsOf: arr)
+            }
             if self.allDate.count > 0 {
                 let model = self.allDate[0]
                 let list = model.produtPriceList
@@ -121,17 +141,44 @@ public class PriceSheetVC: BossViewController {
             self.linkageSheetView.reloadData()
 
         }).disposed(by: disposeBag)
-       
+        self.compentParamWithStartDate(startDate: startDate, endDate: self.endDate)
+    }
+    
+    // 组装请求参数
+    func compentParamWithStartDate(startDate: Date = Date.init(), endDate: Date = Date.init()){
+        // T ~ T + 30
+        let startParam = Date.changeTimesFormatContainYearMouthDayAndLine(date: startDate).1
+        let endParam = Date.changeTimesFormatContainYearMouthDay(date: endDate).1
+        self.showDate =  Date.changeTimesFormatContainYearMouthDayAndLine(date: startDate).0
+        self.dateLab.text = self.showDate
         self.view.showLoadingMessage(message: "加载中...")
         self.priceHouseEvent.onNext((curPage: 1, productIds: nil, channels: nil, fromDate: startParam, endDate: endParam))
     }
+    
 }
 
 extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate {
     
+    // 加载之前的数据
+    public func loadBeforeData() {
+        self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: -1)
+        self.startDate = Date.getRequestLaterDate(from: self.endDate, withYear: 0, month: 0, day: -29)
+        self.loadType = .lefeType
+        self.compentParamWithStartDate(startDate: startDate, endDate: self.endDate)
+    }
+    
+    // 加载之后的数据
+    public func loadFurtureData() {
+        self.startDate = Date.getRequestLaterDate(from: self.endDate, withYear: 0, month: 0, day: 1)
+        self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 29)
+        self.loadType = .rightType
+        self.compentParamWithStartDate(startDate: startDate, endDate: self.endDate)
+    }
+    
     /// 点击事件
     // 左侧表格视图点击事件
     public func leftTableView(_ tableView: UITableView?, didSelectRowAt indexPath: IndexPath?) {
+        
         
     }
     
@@ -161,7 +208,6 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
                         itemSubview.backgroundColor = UIColor.white
                     }
                     let labArr: [UIView] = itemSubview.subviews ?? [UIView.init()]
-                    
                     for labItem in labArr {
                         if labItem is UILabel {
                             let changeLab: UILabel = labItem as! UILabel
@@ -188,11 +234,10 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         if priceModel.selected == true {
             self.dateArr.append(modelArr.date)
         }else{
-            self.dateArr.filter {_ in
-                self.dateArr.contains(modelArr.date)
-            }
+//            self.dateArr.filter {_ in
+//                self.dateArr.contains(modelArr.date)
+//            }
         }
-     
         if self.dateArr.count > 0 { // 调起键盘
             
         }
@@ -237,21 +282,39 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
     // 日期选择 -- 表格左上角视图
     public func leftTitleView(_ titleContentView: UIView?) -> UIView? {
         let contView: UIView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: titleContentView?.width ?? 0, height: titleContentView?.height ?? 0))
-        let selectDate: UIGestureRecognizer = UIGestureRecognizer.init(target: self, action: Selector(("selectDate")))
-        contView.addGestureRecognizer(selectDate)
-        let lab: UILabel = UILabel.init(frame: CGRect.init(x: 0, y: 15, width: contView.width , height: 25))
-        lab.textColor = UIColor.init(named: "buttonBg_F38C27")
-        lab.font = mediumFont(size: 14)
-        lab.textAlignment = .center
-        lab.text = self.showDate
-        contView.addSubview(lab)
-
+        contView.isUserInteractionEnabled = true
+        self.dateLab = UILabel.init(frame: CGRect.init(x: 0, y: 15, width: contView.width , height: 25))
+        self.dateLab .textColor = UIColor.init(named: "buttonBg_F38C27")
+        self.dateLab .font = mediumFont(size: 14)
+        self.dateLab .textAlignment = .center
+        self.dateLab .text = self.showDate
+        contView.addSubview(self.dateLab )
         let imgView: UIImageView = UIImageView.init(frame: CGRect.init(x: 58, y: 46, width: 8, height: 4))
         imgView.image = UIImage.init(named: "sheet_date")
         contView.addSubview(imgView)
+        let btn: UIButton = UIButton.init(frame: CGRect.init(x: 0, y: 0, width: titleContentView?.width ?? 0, height: titleContentView?.height ?? 0))
+        btn.addTarget(self, action:  #selector(selectDate), for: .touchUpInside)
+        contView.addSubview(btn)
         return contView
     }
     
+    // 日期选择
+    @objc func selectDate()  {
+        let singleCalenderView = SingleCalenderView.init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height:  UIScreen.main.bounds.height) , selectedStr: self.showDate)
+        singleCalenderView.backSelectData = { str  in
+            if self.showDate == str {
+                return
+            }
+            self.showDate = str
+            self.startDate = Date.selectedIntChangeDate(resultDate: self.showDate ?? "2021-09-10")
+            self.endDate =  Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 30)
+            self.loadType = .normal
+            // 调用接口
+            self.compentParamWithStartDate(startDate: self.startDate, endDate: self.endDate)
+        }
+        let window  = UIApplication.shared.keyWindow!
+        window.addSubview(singleCalenderView)
+    }
     //  自定义表格左侧标题视图 -- 房间名称和渠道
     public func createLeftItem(withContentView contentView: UIView?, indexPath: IndexPath?) -> UIView? {
         let model = self.allDate[0]

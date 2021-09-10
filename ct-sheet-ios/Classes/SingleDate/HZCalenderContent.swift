@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import boss_basic_common_ios
+import ct_common_ios
 
 protocol HZCalenderContentDelegate: NSObjectProtocol {
     func newSelect(day: String)
@@ -15,14 +15,40 @@ protocol HZCalenderContentDelegate: NSObjectProtocol {
 }
 
 class HZCalenderContent: UIView {
+        
+    private let b_title: UILabel = {
+       let button = UILabel.init()
+        button.font = UIFont.systemFont(ofSize: 20)
+        button.textColor = UIColor.init(named: "ct_000000-70_FFFFFF-70")
+        button.backgroundColor = UIColor.white
+        button.textAlignment = .center
+//        button.addTarget(self, action: #selector(showOrHide), for: .touchUpInside)
+        return button
+    }()
+    private let b_before_month: UIButton = {
+        let button = UIButton.init(type: .custom)
+        button.tintColor = UIColor.init(named: "buttonBg_F38C27")
+        button.setImage(UIImage.init(named: "ic_back_gray"), for: .normal)
+        button.addTarget(self, action: #selector(beforeMonth), for: .touchUpInside)
+        return button
+    }()
+    private let b_next_month: UIButton = {
+        let button = UIButton.init(type: .custom)
+        button.tintColor = UIColor.init(named: "buttonBg_F38C27")
+        button.setImage(UIImage.init(named: "ic_forward_gray"), for: .normal)
+        button.addTarget(self, action: #selector(nextMonth), for: .touchUpInside)
+        return button
+    }()
     
     weak var delegate: HZCalenderContentDelegate? {
         didSet {
             let calendar = Calendar.current
             /**初始化月份的符号*/
-            let month = calendar.shortMonthSymbols[self.select_day.month! - 1]
-            delegate?.newPage(year: "\(self.select_day.year!)", month: month)
+            let month = calendar.shortMonthSymbols[cur_year_month.month! - 1]
+            delegate?.newPage(year: "\(cur_year_month.year!)", month: month)
             delegate?.newSelect(day: self.selectCalendarToString())
+            let textCont =  "\(cur_year_month.year!)" + "年" + month
+            b_title.text = textCont
         }
     }
     
@@ -30,13 +56,20 @@ class HZCalenderContent: UIView {
     private let dayLabels: [UILabel] = {
         var ary: [UILabel] = []
         let weekName = ["日", "一", "二", "三", "四", "五", "六"]
+
         for index in 0...6 {
             let label = UILabel()
             label.textAlignment = .center
-            label.font = regularFont(size: 12)
+            label.font = UIFont.systemFont(ofSize: 12)
             /**周的符号*/
+//            label.text = Calendar.current.shortWeekdaySymbols[index]
             label.text = weekName[index]
-            label.textColor =  hexColor("9FA5B4")
+
+            if label.text == "六" || label.text == "日"{
+                label.textColor = UIColor.init(named: "buttonBg_F38C27")
+            }else {
+                label.textColor = k_color_dark
+            }
             ary.append(label)
         }
         return ary
@@ -46,9 +79,10 @@ class HZCalenderContent: UIView {
     private let collectionL: UICollectionView = UICollectionView.init(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private let collectionM: UICollectionView = UICollectionView.init(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private let collectionR: UICollectionView = UICollectionView.init(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    var select_day: DateComponents = {
+    private var select_day: DateComponents = {
         return Calendar.current.dateComponents([.year, .month, .day], from: Date())
     }()
+    
     private var cur_year_month: DateComponents = Calendar.current.dateComponents([.year, .month], from: Date()) {
         willSet {
             days_left = HZDayModel.creatDays(by: newValue.previousMonth())
@@ -58,6 +92,8 @@ class HZCalenderContent: UIView {
             let calendar = Calendar.current
             let month = calendar.shortMonthSymbols[newValue.month! - 1]
             delegate?.newPage(year: "\(newValue.year!)", month: month)
+            let textCont = "\(newValue.year!)" + "年" + month
+            b_title.text = textCont
         }
     }
     private var days_left: [HZDayModel] = [] {
@@ -70,10 +106,6 @@ class HZCalenderContent: UIView {
         didSet { collectionR.reloadData() }
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-    
     required init(frame: CGRect, selectDay: DateComponents) {
         super.init(frame: frame)
         self.select_day = selectDay
@@ -84,11 +116,18 @@ class HZCalenderContent: UIView {
         days_right = HZDayModel.creatDays(by: selectDay.nextMonth())
     }
     
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        self.onCreat()
+        days_left = HZDayModel.creatDays(by: cur_year_month.previousMonth())
+        days_middle = HZDayModel.creatDays(by: cur_year_month)
+        days_right = HZDayModel.creatDays(by: cur_year_month.nextMonth())
+    }
     func nextDay() {
         let nextday = select_day.nextDay()
-        if nextday.isFuture() {
-            return
-        }
+//        if nextday.isFuture() {
+//            return
+//        }
         select_day = nextday
         collectionL.reloadData()
         collectionM.reloadData()
@@ -96,7 +135,12 @@ class HZCalenderContent: UIView {
         delegate?.newSelect(day: self.selectCalendarToString())
     }
     
-    func nextMonth() {
+    func selectCalendarToString() -> (String) {
+        let string = "\(select_day.year!)-\(String(format: "%02d", select_day.month!))-\(String(format: "%02d", select_day.day!))"
+        return string
+    }
+    
+    @objc func nextMonth() {
         cur_year_month = cur_year_month.nextMonth()
     }
     
@@ -112,7 +156,7 @@ class HZCalenderContent: UIView {
         delegate?.newSelect(day: self.selectCalendarToString())
     }
     
-    func beforeMonth() {
+    @objc func beforeMonth() {
         cur_year_month = cur_year_month.previousMonth()
     }
     
@@ -121,9 +165,9 @@ class HZCalenderContent: UIView {
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        if (scrollView.contentOffset.y < scrollView.bounds.size.height) {// 向左
+        if (scrollView.contentOffset.x < scrollView.bounds.size.width) {// 向左
             cur_year_month = cur_year_month.previousMonth()
-        } else if (scrollView.contentOffset.y > scrollView.bounds.size.height) {
+        } else if (scrollView.contentOffset.x > scrollView.bounds.size.width) {
             cur_year_month = cur_year_month.nextMonth()
         }
         scrollView.setContentOffset(collectionM.frame.origin, animated: false)
@@ -132,17 +176,22 @@ class HZCalenderContent: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         let width = self.bounds.size.width
+        b_before_month.frame = CGRect.init(x: 0, y: 0, width: 60, height: 48)
+        b_title.frame = CGRect.init(x:65,
+                                    y: 0, width: kScreenWidth - 130 , height: 48)
+        b_next_month.frame = CGRect.init(x: b_title.frame.maxX, y: 0, width: 60, height: 48)
+
         let labelWidth = width / 7
         for index in 0...(dayLabels.count - 1) {
             let label = dayLabels[index]
-            label.frame = CGRect.init(x: labelWidth*CGFloat(index), y: 0, width: labelWidth, height: 22)
+            label.frame = CGRect.init(x: labelWidth*CGFloat(index), y: 49, width: labelWidth, height: 40)
         }
-        let height = self.bounds.size.height - 22
-        scrollView.frame = CGRect.init(x: 0, y: 22, width: width, height: height)
-        scrollView.contentSize = CGSize.init(width: width, height: height * 3)
+        let height = self.bounds.size.height - 40 - 49
+        scrollView.frame = CGRect.init(x: 0, y: 89, width: width, height: height)
+        scrollView.contentSize = CGSize.init(width: width*3, height: height)
         collectionL.frame = CGRect.init(x: 0, y: 0, width: width, height: height)
-        collectionM.frame = CGRect.init(x: 0, y: height, width: width, height: height)
-        collectionR.frame = CGRect.init(x: 0, y: height*2, width: width, height: height)
+        collectionM.frame = CGRect.init(x: width, y: 0, width: width, height: height)
+        collectionR.frame = CGRect.init(x: width*2, y: 0, width: width, height: height)
         scrollView.setContentOffset(collectionM.frame.origin, animated: false)
         collectionL.reloadData()
         collectionM.reloadData()
@@ -150,26 +199,30 @@ class HZCalenderContent: UIView {
     }
     
     private func onCreat() {
+        
+        self.addSubview(self.b_before_month)
+        self.addSubview(self.b_next_month)
+        self.addSubview(self.b_title)
         for label in dayLabels {
             self.addSubview(label)
         }
+        
         scrollView.delegate = self
         scrollView.isPagingEnabled = true
         scrollView.showsHorizontalScrollIndicator = false
-        scrollView.showsVerticalScrollIndicator = false
         scrollView.bounces = false
         self.addSubview(scrollView)
         collectionL.delegate = self
         collectionL.dataSource = self
-        collectionL.backgroundColor = .white
+        collectionL.backgroundColor = UIColor.white
         collectionL.register(HZCalenderCell.classForCoder(), forCellWithReuseIdentifier: reuseId)
         collectionM.delegate = self
         collectionM.dataSource = self
-        collectionM.backgroundColor = .white
+        collectionM.backgroundColor = UIColor.white
         collectionM.register(HZCalenderCell.classForCoder(), forCellWithReuseIdentifier: reuseId)
         collectionR.delegate = self
         collectionR.dataSource = self
-        collectionR.backgroundColor = .white
+        collectionR.backgroundColor = UIColor.white
         collectionR.register(HZCalenderCell.classForCoder(), forCellWithReuseIdentifier: reuseId)
         scrollView.addSubview(collectionL)
         scrollView.addSubview(collectionM)
@@ -204,23 +257,15 @@ extension HZCalenderContent: UICollectionViewDataSource, UICollectionViewDelegat
         let day = ary[indexPath.row]
         cell.label.text = "\(day.year_month_day.day!)"
         if day.isEnable && day.year_month_day.isEque(day: select_day) {
-            // 选中的
-            cell.label.backgroundColor = hexColor("F69535")
-            cell.label.textColor = hexColor("FEFFFF")
-            cell.label.layer.shadowColor = UIColor(red: 0.98, green: 0.51, blue: 0.19, alpha: 0.24).cgColor
-            cell.label.layer.shadowOffset = CGSize(width: 0, height: 10)
-            cell.label.layer.shadowOpacity = 1
-            cell.label.layer.shadowRadius = 25
+            cell.label.backgroundColor = UIColor.init(named: "ct_F69535")
+//                k_color_blue
+            cell.label.textColor = UIColor.white
         } else if day.isEnable {
-            // 可点击的
-            cell.label.backgroundColor = self.collectionL.backgroundColor
-            cell.label.textColor = hexColor("626B80")
-            cell.label.layer.shadowOpacity = 0
+            cell.label.backgroundColor = UIColor.white
+            cell.label.textColor = UIColor.darkText
         } else {
-            // 不可点击的
-            cell.label.backgroundColor = self.collectionL.backgroundColor
-            cell.label.textColor = hexColor("9FA5B4")
-            cell.label.layer.shadowOpacity = 0
+            cell.label.backgroundColor = UIColor.white
+            cell.label.textColor = UIColor.lightGray
         }
         return cell
     }
@@ -235,6 +280,9 @@ extension HZCalenderContent: UICollectionViewDataSource, UICollectionViewDelegat
             ary = days_right
         }
         let day = ary[indexPath.row]
+//        if day.year_month_day.isFuture() {
+//            return
+//        }
         if day.isEnable {
             self.select_day = day.year_month_day
             collectionL.reloadData()
@@ -242,11 +290,6 @@ extension HZCalenderContent: UICollectionViewDataSource, UICollectionViewDelegat
             collectionR.reloadData()
             delegate?.newSelect(day: self.selectCalendarToString())
         }
-    }
-    
-    func selectCalendarToString() -> (String) {
-        let string = "\(select_day.year!)-\(String(format: "%02d", select_day.month!))-\(String(format: "%02d", select_day.day!))"
-        return string
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

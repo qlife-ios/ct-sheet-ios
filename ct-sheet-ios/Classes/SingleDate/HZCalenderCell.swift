@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import boss_basic_common_ios
 
 class HZCalenderCell: UICollectionViewCell {
     
@@ -15,12 +14,10 @@ class HZCalenderCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
-        let labelWidth:CGFloat = 36
-        
+        self.backgroundColor = UIColor.white
         label.textAlignment = .center
-        label.font = regularFont(size: 14)
-        label.layer.cornerRadius = labelWidth/2
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.layer.cornerRadius = 20
         label.clipsToBounds = true
         self.addSubview(label)
         
@@ -28,8 +25,8 @@ class HZCalenderCell: UICollectionViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         self.addConstraint(NSLayoutConstraint(item: label, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1, constant: 0))
         self.addConstraint(NSLayoutConstraint(item: label, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 1, constant: 0))
-        self.addConstraint(NSLayoutConstraint(item: label, attribute: .width, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: labelWidth))
-        self.addConstraint(NSLayoutConstraint(item: label, attribute: .height, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: labelWidth))
+        self.addConstraint(NSLayoutConstraint(item: label, attribute: .width, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 40))
+        self.addConstraint(NSLayoutConstraint(item: label, attribute: .height, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 40))
     }
     
     override func layoutSubviews() {
