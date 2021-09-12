@@ -38,6 +38,8 @@ public class PriceSheetVC: BossViewController {
     // 颜色
     var colorArr: [String] = []
     
+    // 第一列数据
+    var firstModel: DayModel?
     
     // 所有数据
     var allDate: [DayModel] = []
@@ -123,6 +125,7 @@ public class PriceSheetVC: BossViewController {
         self.viewModel?.housePricesOutput.subscribe(onNext:{[unowned self] (arr)  in
             self.view.dissmissLoadingView()
             if self.loadType == .normal{
+                self.firstModel = nil
                 self.allDate = arr
             }else if self.loadType == .lefeType{
                 self.allDate.insert(contentsOf: arr, at: 0)
@@ -130,16 +133,24 @@ public class PriceSheetVC: BossViewController {
                 self.allDate.append(contentsOf: arr)
             }
             if self.allDate.count > 0 {
+                if (self.firstModel == nil){
+                    self.firstModel = self.allDate.first
+                }
+                self.showDate = self.firstModel?.yearMonthDay
+                self.dateLab.text = self.firstModel?.yearMonthDay
+                var indexA: Int = self.allDate.firstIndex(where: { $0 == self.firstModel }) ?? 0
                 let model = self.allDate[0]
                 let list = model.produtPriceList
                 if let listArr = list, listArr.count > 0{
                     let productModel = model.produtPriceList[0]
                     self.linkageSheetView.leftTableCount = model.produtPriceList.count *  productModel.channelPriceModel.count
                 }
+                self.linkageSheetView.rightTableCount = self.allDate.count
+                self.linkageSheetView.reloadData()
+                
+                self.linkageSheetView.rightContentView.contentOffset.x = CGFloat(52 * indexA)
             }
-            self.linkageSheetView.rightTableCount = self.allDate.count
-            self.linkageSheetView.reloadData()
-
+           
         }).disposed(by: disposeBag)
         self.compentParamWithStartDate(startDate: startDate, endDate: self.endDate)
     }
@@ -149,8 +160,6 @@ public class PriceSheetVC: BossViewController {
         // T ~ T + 30
         let startParam = Date.changeTimesFormatContainYearMouthDayAndLine(date: startDate).1
         let endParam = Date.changeTimesFormatContainYearMouthDay(date: endDate).1
-        self.showDate =  Date.changeTimesFormatContainYearMouthDayAndLine(date: startDate).0
-        self.dateLab.text = self.showDate
         self.view.showLoadingMessage(message: "加载中...")
         self.priceHouseEvent.onNext((curPage: 1, productIds: nil, channels: nil, fromDate: startParam, endDate: endParam))
     }
@@ -173,6 +182,13 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 29)
         self.loadType = .rightType
         self.compentParamWithStartDate(startDate: startDate, endDate: self.endDate)
+    }
+    
+    
+    public func getvisibleFirstDate(_ index: NSInteger) {
+        self.firstModel = self.allDate[index]
+        self.showDate = self.firstModel?.yearMonthDay
+        self.dateLab.text = self.firstModel?.yearMonthDay
     }
     
     /// 点击事件
@@ -287,7 +303,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         self.dateLab .textColor = UIColor.init(named: "buttonBg_F38C27")
         self.dateLab .font = mediumFont(size: 14)
         self.dateLab .textAlignment = .center
-        self.dateLab .text = self.showDate
+        self.dateLab .text = self.firstModel?.yearMonthDay
         contView.addSubview(self.dateLab )
         let imgView: UIImageView = UIImageView.init(frame: CGRect.init(x: 58, y: 46, width: 8, height: 4))
         imgView.image = UIImage.init(named: "sheet_date")
@@ -333,6 +349,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate 
         nameView.textColor = UIColor.init(named: "ct_000000-65")
         nameView.font = mediumFont(size: 14)
         nameView.text = productModel.name
+        nameView.isUserInteractionEnabled = false
         nameView.textAlignment = .center
         let contentSize: CGSize = nameView.contentSize
         if contentSize.height < allHeight {

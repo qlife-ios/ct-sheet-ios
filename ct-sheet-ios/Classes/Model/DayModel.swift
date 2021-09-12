@@ -26,6 +26,8 @@ import boss_basic_common_ios
     
     var showWeek: String = "一"
     
+    var yearMonthDay: String? // 年月日
+    
 	/**
 	 * Instantiate the instance using the passed json values to set the properties values
 	 */
@@ -44,6 +46,7 @@ import boss_basic_common_ios
 			dayStock = DayStock(fromJson: dayStockJson)
 		}
         let inDate = Date.intChangeDate(resultDate: self.date ?? 0)
+        self.yearMonthDay = Date.changeTimesFormatContainYearMouthDayAndLine(date: inDate).0
         isToday = inDate.isToday()
         dayStr = inDate.getYearMonthAndDay().2
         self.isBefore = inDate.isBefore()
