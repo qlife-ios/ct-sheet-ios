@@ -19,6 +19,11 @@ import boss_basic_common_ios
     var isBefore: Bool = true
      
     var selected: Bool = false  // 是否已经选择
+    
+    
+    var minPrice: Int = 0 // 最小价格 ,单位元
+    
+    var maxPrice: Int = 0 // 最大价格,单位元
 
     var channelImg: String?{
         get{
@@ -66,7 +71,26 @@ import boss_basic_common_ios
             self.canChoose = false
         }
 		channel = json["channel"].intValue
-
+        
+        switch channel {
+            case 10: // 1 ~ 50000
+                self.minPrice = 1
+                self.maxPrice = 50000
+            case 20: // 75 ~ 50000
+                self.minPrice = 75
+                self.maxPrice = 50000
+                
+            case 30: // 1 ~ 50000
+                self.minPrice = 1
+                self.maxPrice = 50000
+            case 40: //10 ~ 500000
+                self.minPrice = 10
+                self.maxPrice = 50000
+            case .some(_):
+                break
+            case .none:
+                break
+        }
 	}
 
 	/**

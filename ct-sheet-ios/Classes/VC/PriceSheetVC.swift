@@ -28,6 +28,8 @@ public class PriceSheetVC: BossViewController {
     
     private var priceHouseEvent = PublishSubject<(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)>()
     
+    private var priceChangeEvent = PublishSubject<(productId: String, dates: [Int], channel: Int ,price: Int)>()
+    
     var viewModel: PriceSheetViewModel?
     
     private let disposeBag = DisposeBag()
@@ -66,6 +68,16 @@ public class PriceSheetVC: BossViewController {
     
     // 选择了某写item
     var selectCells: [CXLinkageSheetRightItem] = []
+    
+    
+    // 选择的房型
+    var selectProductId: String?
+    
+    // 渠道
+    var selectChannel: Int = 0
+    
+    // 输入的价格
+    var inputPrice: Int = 0
     
     // 加载状态
     var loadType: LoadType = .normal
@@ -130,9 +142,11 @@ public class PriceSheetVC: BossViewController {
         self.linkageSheetView.reloadData()
     }
     
+    
     func bindViewModel() {
         
-        let input = PriceSheetViewModel.input(housePriceConsoleObservable: self.priceHouseEvent)
+        let input = PriceSheetViewModel.input(housePriceConsoleObservable: self.priceHouseEvent, housePriceChangeObservable: self.priceChangeEvent)
+        
         self.viewModel = PriceSheetViewModel.init(input: input)
         self.viewModel?.housePricesOutput.subscribe(onNext:{[unowned self] (arr)  in
             self.view.dissmissLoadingView()
@@ -172,6 +186,38 @@ public class PriceSheetVC: BossViewController {
             }
             
         }).disposed(by: disposeBag)
+        
+        self.viewModel?.pricesChangeOutput.subscribe(onNext: {[unowned self] (model) in
+            self.view.dissmissLoadingView()
+            // 刷新页面
+            for (_,dayModel) in self.allDate.enumerated() {
+                let model = dayModel.produtPriceList[self.selectIndexPath?.section ?? 0]
+                let priceModel = model.channelPriceModel[self.selectIndexPath?.row ?? 0]
+                if  priceModel.selected == true {
+                    priceModel.selected = false
+                    priceModel.price = self.inputPrice * 100
+                }
+            }
+            if self.selectCells.count > 0 {
+                self.changeColorWithItem(cellArr: self.selectCells,changePrice: true)
+            }
+            if let keyB = self.keyBoard{
+                keyB.removeFromSuperview()
+            }
+            self.keyBoard = nil
+            self.dateArr.removeAll()
+            self.selectCells.removeAll()
+            self.selectIndexPath = nil
+            
+        }).disposed(by: disposeBag)
+        self.viewModel?.errorObservable.subscribe(onNext: {[unowned self] (model) in
+            self.view.dissmissLoadingView()
+            self.view.showfailMessage(message: model.zhMessage, handle: nil)
+        }).disposed(by: disposeBag)
+        self.viewModel?.errorOutPut.subscribe(onNext: {[unowned self] (model) in
+            self.view.dissmissLoadingView()
+            self.view.showfailMessage(message: model.zhMessage, handle: nil)
+        }).disposed(by: disposeBag)
     }
     
     // 组装请求参数
@@ -186,6 +232,11 @@ public class PriceSheetVC: BossViewController {
 
 extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate, kfZNumberKeyBoardDelegate {
     
+    public func erroTip(withMinPrice minPrice: Int, maxPrice: Int) {
+        guard let keyWindow = UIApplication.shared.keyWindow else { return }
+        keyWindow.dissmissLoadingView()
+        keyWindow.justTitleMessageView(message: "请输入\(minPrice) ~ \(maxPrice) 元内的价格", handle: nil)
+    }
     /*
      * kfZNumberKeyBoardDelegate
      */
@@ -218,7 +269,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
             }
         }
         if self.selectCells.count > 0 {
-            self.changeColorWithItem(cellArr: self.selectCells)
+            self.changeColorWithItem(cellArr: self.selectCells,changePrice: false)
         }
         self.dateArr.removeAll()
         self.selectCells.removeAll()
@@ -226,7 +277,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
     }
     
     // 改变颜色
-    func changeColorWithItem(cellArr: [CXLinkageSheetRightItem])  {
+    func changeColorWithItem(cellArr: [CXLinkageSheetRightItem] ,changePrice: Bool)  {
         for (_, item) in cellArr.enumerated() {
             let itemSubArr: [UIView] = item.subviews
             if itemSubArr.count > 0 {
@@ -239,6 +290,9 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
                                 let changeLab: UILabel = labItem as! UILabel
                                 if changeLab.tag == 7 {
                                     changeLab.textColor = UIColor.init(named: "ct_000000-85_FFFFFF-85")
+                                    if changePrice == true {
+                                        changeLab.text = String(self.inputPrice)
+                                    }
                                 }
                                 if changeLab.tag == 8 {
                                     changeLab.textColor = UIColor.init(named: "ct_000000-50")
@@ -250,19 +304,15 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
             }
         }
     }
-    
+
     // 改价
     public func delegatechangePriceBtnClick() {
         // 键盘下去, 调用接口
-        if let keyB = self.keyBoard{
-            keyB.removeFromSuperview()
+        if let proId = self.selectProductId{
+            self.view.showLoadingMessage(message: "加载中...")
+            let price: Int = self.inputPrice * 100
+            self.priceChangeEvent.onNext((productId: proId, dates: self.dateArr, channel: self.selectChannel, price: price))
         }
-        self.keyBoard = nil
-        self.dateArr.removeAll()
-        self.selectCells.removeAll()
-        self.selectIndexPath = nil
-        
-        
     }
     
     /*
@@ -313,6 +363,8 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
         }
         priceModel.selected = !priceModel.selected
         
+        self.selectProductId = model.id
+        self.selectChannel = priceModel.channel
         // 获取item
         let indexN = indexPath ?? IndexPath.init(row: 0, section: 0)
         let cell = tableView?.cellForRow(at: indexN) as? CXLinkageSheetRightCell
@@ -384,13 +436,32 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
         }
         
         if self.dateArr.count > 0 { // 调起键盘
-            if self.keyBoard == nil{
+            if self.keyBoard == nil {
                 self.keyBoard = kfZNumberKeyBoard.moneyKeyBoardBuyer(withImageName: priceModel.channelImg ?? "")
                 if let board = self.keyBoard {
                     self.keyBoard?.delegate = self
                     self.view.addSubview(board)
                 }
             }
+            self.keyBoard?.minPrice = priceModel.minPrice
+            self.keyBoard?.maxPrice = priceModel.maxPrice
+            if self.dateArr.count == 1 {
+                let firstDate = self.dateArr.first
+                let showDate = Date.changeMonthDayFormatContainMonthDay(date: Date.intChangeDate(resultDate: firstDate ?? 0))
+                if let date = showDate {
+                    self.keyBoard?.titileStr = "已选\(date)共1个间夜"
+                }
+                
+            }else{
+                let firstDate = self.dateArr.first
+                let lastDate = self.dateArr.last
+                let showFirst = Date.changeMonthDayFormatContainMonthDay(date: Date.intChangeDate(resultDate: firstDate ?? 0))
+                let showLast = Date.changeMonthDayFormatContainMonthDay(date: Date.intChangeDate(resultDate: lastDate ?? 0))
+                if let oneDate = showFirst, let twoDate = showLast {
+                    self.keyBoard?.titileStr = "已选\(oneDate) ~ \(twoDate) 共\(self.dateArr.count)个间夜"
+                }
+            }
+            
         }else{
             self.keyBoard?.removeFromSuperview()
             self.keyBoard = nil
