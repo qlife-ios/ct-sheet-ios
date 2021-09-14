@@ -54,6 +54,7 @@ import boss_basic_common_ios
         let produtPriceModelArray = json["product_prices"].arrayValue
         for produtPriceModelJson in produtPriceModelArray{
             let value = ProdutPriceModel(fromJson: produtPriceModelJson)
+            value.isBefore = self.isBefore
             produtPriceList.append(value)
         }
         let dateFormater = Date.intChangeDate(resultDate: date ?? 0)

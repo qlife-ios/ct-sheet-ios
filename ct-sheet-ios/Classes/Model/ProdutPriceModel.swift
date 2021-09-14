@@ -25,6 +25,7 @@ import boss_basic_common_ios
 		let channelPriceModelArray = json["channel"].arrayValue
 		for channelPriceModelJson in channelPriceModelArray{
 			let value = ChannelPriceModel(fromJson: channelPriceModelJson)
+            value.isBefore = self.isBefore
 			channelPriceModel.append(value)
 		}
 		name = json["name"].stringValue

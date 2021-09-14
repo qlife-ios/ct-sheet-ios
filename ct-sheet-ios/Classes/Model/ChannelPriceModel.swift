@@ -61,7 +61,6 @@ import boss_basic_common_ios
         if json["price"].stringValue.count > 0 {
             price = json["price"].intValue
             self.canChoose = true
-
         }else{
             price = -1
             self.canChoose = false
