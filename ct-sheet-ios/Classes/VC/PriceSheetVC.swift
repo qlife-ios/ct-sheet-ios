@@ -24,7 +24,7 @@ public enum LoadType : Int {
 
 // 线宽
 var lineWidthHeight: CGFloat = 0.5
-public class PriceSheetVC: BossViewController {
+public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     
     private var priceHouseEvent = PublishSubject<(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)>()
     
@@ -89,6 +89,10 @@ public class PriceSheetVC: BossViewController {
         filterBtn.setImage(UIImage.init(named: "sheet_filter"), for: .normal)
         return filterBtn
     }()
+    
+    // 筛选
+    var labGroup = CBGroupAndStreamView()
+
     
     open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         self.setNavColor()
@@ -231,6 +235,42 @@ public class PriceSheetVC: BossViewController {
     }
     
    @objc func filterAllDate()  {
+    
+    var channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
+    var productNameArr: [String] = ["全部"]
+    if self.allDate.count > 0 {
+        let modelArr = self.allDate[0]
+        for model in modelArr.produtPriceList{
+            productNameArr.append(model.name)
+        }
+    }
+    let titleArr = ["选择渠道","选择房型"]
+    let contentArr = [channelNameArr,productNameArr]
+
+     labGroup = CBGroupAndStreamView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height))
+    labGroup.titleTextFont = .systemFont(ofSize: 14)
+    labGroup.titleLabHeight = 30;
+    labGroup.titleTextColor = .red
+    labGroup.isSingle = true
+//        labGroup.defaultSelIndex = 1
+//        labGroup.defaultSelSingleIndeArr = [1,1,0,0]
+    //使用该参数则默认为多选 isSingle 无效 defaultSelSingleIndeArr 设置无效
+    labGroup.defaultSelIndexArr = [0,0]
+    //分别设置每个组的单选与多选
+    labGroup.defaultGroupSingleArr = [0,0]
+    labGroup.setDataSource(contetnArr: contentArr, titleArr: titleArr)
+    labGroup.delegate = self
+    
+    self.view.addSubview(labGroup)
+    labGroup.confirmReturnValueClosure = {
+        (selArr,groupIdArr) in
+//            print(selArr)
+    }
+    labGroup.currentSelValueClosure = {
+        (valueStr,index,groupId) in
+//            print("\(valueStr) index = \(index), groupid = \(groupId)")
+    }
+    
         
     }
     // 组装请求参数
@@ -715,3 +755,5 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
         return contView
     }
 }
+
+
