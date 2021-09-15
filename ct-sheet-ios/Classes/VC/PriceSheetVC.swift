@@ -82,6 +82,14 @@ public class PriceSheetVC: BossViewController {
     // 加载状态
     var loadType: LoadType = .normal
     
+    lazy var filterBtn: UIButton = {
+        let filterBtn = UIButton()
+        filterBtn.addTarget(self, action: #selector(filterAllDate), for: .touchUpInside)
+        filterBtn.frame = CGRect(x: kScreenWidth - 76, y: kScreenHeight - 90 - 34, width: 60, height: 60)
+        filterBtn.setImage(UIImage.init(named: "sheet_filter"), for: .normal)
+        return filterBtn
+    }()
+    
     open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         self.setNavColor()
     }
@@ -112,6 +120,8 @@ public class PriceSheetVC: BossViewController {
         self.colorArr = ["ct_71BEFF","ct_FF839D","ct_FFDD5C"]
         self.setupUI()
         self.bindViewModel()
+        self.view.addSubview(self.filterBtn)
+        self.view.bringSubviewToFront(self.filterBtn)
     }
     
     func setupUI() {
@@ -220,6 +230,9 @@ public class PriceSheetVC: BossViewController {
         }).disposed(by: disposeBag)
     }
     
+   @objc func filterAllDate()  {
+        
+    }
     // 组装请求参数
     func compentParamWithStartDate(startDate: Date = Date.init(), endDate: Date = Date.init()){
         // T ~ T + 30
@@ -231,7 +244,7 @@ public class PriceSheetVC: BossViewController {
 }
 
 extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate, kfZNumberKeyBoardDelegate {
-    
+
     public func erroTip(withMinPrice minPrice: Int, maxPrice: Int) {
         guard let keyWindow = UIApplication.shared.keyWindow else { return }
         keyWindow.dissmissLoadingView()
@@ -306,8 +319,9 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
     }
 
     // 改价
-    public func delegatechangePriceBtnClick() {
+    public func delegatechangePriceBtnClick(_ inputNum: Int) {
         // 键盘下去, 调用接口
+        self.inputPrice = inputNum
         if let proId = self.selectProductId{
             self.view.showLoadingMessage(message: "加载中...")
             let price: Int = self.inputPrice * 100
