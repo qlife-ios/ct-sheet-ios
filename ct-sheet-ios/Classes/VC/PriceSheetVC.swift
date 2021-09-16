@@ -21,12 +21,11 @@ public enum LoadType : Int {
     case normal                = 20         // 正常
     case rightType             = 30         // 右边
 }
-
 // 线宽
 var lineWidthHeight: CGFloat = 0.5
 public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     
-    private var priceHouseEvent = PublishSubject<(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)>()
+    private var priceHouseEvent = PublishSubject<(curPage: Int, productIds: [String]?, channels: [Int]? ,fromDate: Int ,endDate: Int)>()
     
     private var priceChangeEvent = PublishSubject<(productId: String, dates: [Int], channel: Int ,price: Int)>()
     
@@ -70,6 +69,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     var selectCells: [CXLinkageSheetRightItem] = []
     
     
+    // 改价
     // 选择的房型
     var selectProductId: String?
     
@@ -79,9 +79,24 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     // 输入的价格
     var inputPrice: Int = 0
     
+    var loadNum : Int = 0
     // 加载状态
-    var loadType: LoadType = .normal
+    var loadType: LoadType = .normal {
+        didSet{
+            if self.loadType == .normal{
+                self.loadNum = 0
+            }else{
+                self.loadNum = self.loadNum + 1
+            }
+        }
+    }
     
+    
+    // 筛选的时候
+    var filterChannelArr: [Int]?
+    
+    var filterProductIdArr: [String]?
+
     lazy var filterBtn: UIButton = {
         let filterBtn = UIButton()
         filterBtn.addTarget(self, action: #selector(filterAllDate), for: .touchUpInside)
@@ -118,6 +133,8 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         self.view.backgroundColor = .white
         self.title = "房价管理"
         self.colorArr = ["ct_71BEFF","ct_FF839D","ct_FFDD5C"]
+        self.filterChannelArr = []
+        self.filterProductIdArr = []
         self.setupUI()
         self.bindViewModel()
         self.view.addSubview(self.filterBtn)
@@ -151,7 +168,6 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         self.linkageSheetView.showScrollShadow = false
         self.linkageSheetView.reloadData()
     }
-    
     
     func bindViewModel() {
         
@@ -193,6 +209,16 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
                 self.linkageSheetView.rightTableCount = self.allDate.count
                 self.linkageSheetView.reloadData()
                 self.linkageSheetView.rightContentView.contentOffset.x = CGFloat(52 * indexA)
+                self.filterBtn.isHidden = false
+                self.linkageSheetView.isHidden = false
+            }else{
+                // 空页面
+                self.filterBtn.isHidden = true
+                self.linkageSheetView.isHidden = true
+                self.view.emptyViewDisplayWitMsg(message: "请先进行房源关联", imageName: nil, detailStr: nil, outStandStr: nil, btnStr: "房源关联") {
+                 // 关联房源
+                    "allChannelVCRouter".openURL(para: ["isPriceJump": false])
+                }
             }
             
         }).disposed(by: disposeBag)
@@ -232,35 +258,61 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     
     // 筛选
     @objc func filterAllDate()  {
-        var channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
+        let channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
         var productNameArr: [String] = ["全部"]
         if self.allDate.count > 0 {
             let modelArr = self.allDate[0]
             for model in modelArr.produtPriceList{
                 productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-                productNameArr.append(model.name)
-
             }
         }
         let titleArr = ["选择渠道","选择房型"]
         let contentArr = [channelNameArr,productNameArr]
+        
+        
+//        labGroup.defaultSelIndexArr = [[0,5,8,3,2],1,0,3]
+
+        
         let resultView = FilterView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight), contetnArr: contentArr, titleArr: titleArr)
+        resultView.backSelectFilter = { (selArr ) in
+            print(selArr)
+            let channelArr = selArr[0] as! Array<String>
+            let productArr = selArr[1] as! Array<String>
+            self.filterChannelArr = []
+            self.filterProductIdArr = []
+            for str in channelArr  {
+                if str.contains("全部") {
+                    self.filterChannelArr?.removeAll()
+                    break
+                }
+                if str.contains("美团民宿"){
+                    self.filterChannelArr?.append(40)
+                    continue
+                }
+                if str.contains("小猪民宿")  {
+                    self.filterChannelArr?.append(30)
+                    continue
+                }
+                if str.contains("爱彼迎") {
+                    self.filterChannelArr?.append(20)
+                    continue
+                }
+                if str.contains("途家") {
+                    self.filterChannelArr?.append(10)
+                    continue
+                }
+            }
+            if self.allDate.count > 0 {
+                let modelArr = self.allDate[0]
+                    for everyModel in modelArr.produtPriceList {
+                        if productArr.contains(where: { $0.contains(everyModel.name)}){
+                            self.filterProductIdArr?.append(everyModel.id)
+                        }
+                    }
+            }
+            self.firstModel = nil
+            self.compentParamWithStartDate(startDate: self.startDate, endDate: self.endDate)
+        }
         let window  = UIApplication.shared.keyWindow!
         window.addSubview(resultView)
     }
@@ -270,7 +322,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         let startParam = Date.changeTimesFormatContainYearMouthDayAndLine(date: startDate).1
         let endParam = Date.changeTimesFormatContainYearMouthDay(date: endDate).1
         self.view.showLoadingMessage(message: "加载中...")
-        self.priceHouseEvent.onNext((curPage: 1, productIds: nil, channels: nil, fromDate: startParam, endDate: endParam))
+        self.priceHouseEvent.onNext((curPage: 1, productIds: self.filterProductIdArr, channels: self.filterChannelArr, fromDate: startParam, endDate: endParam))
     }
 }
 
@@ -365,6 +417,10 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
      */
     // 加载之前的数据
     public func loadBeforeData() {
+        if self.loadNum > 4{
+            self.view.justTitleMessageView(message: "试试点击日期筛选", handle: nil)
+            return
+        }
         self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: -1)
         self.startDate = Date.getRequestLaterDate(from: self.endDate, withYear: 0, month: 0, day: -29)
         self.loadType = .lefeType
@@ -373,6 +429,10 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
     
     // 加载之后的数据
     public func loadFurtureData() {
+        if self.loadNum > 4{
+            self.view.justTitleMessageView(message: "试试点击日期筛选", handle: nil)
+            return
+        }
         self.startDate = Date.getRequestLaterDate(from: self.endDate, withYear: 0, month: 0, day: 1)
         self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 29)
         self.loadType = .rightType

@@ -9,12 +9,16 @@ import UIKit
 import boss_basic_common_ios
 import ct_common_ios
 
+public typealias BackSelectFilterBlock = (_ selectArr: Array<Any>) ->()
+
 class FilterView: UIView {
     // 标题栏高度
     let headerHeight:CGFloat = 47
     
     var titleLabel = UILabel()
     
+    public var backSelectFilter: BackSelectFilterBlock?
+
     // 取消
     var cancelBtn = UIButton()
     
@@ -74,16 +78,17 @@ class FilterView: UIView {
         labGroup.defaultGroupSingleArr = [0,0]
         labGroup.setDataSource(contetnArr: contetnArr, titleArr: titleArr)
         self.addSubview(labGroup)
-        labGroup.confirmReturnValueClosure = {
-            (selArr,groupIdArr) in
-    //            print(selArr)
+        labGroup.confirmReturnValueClosure = { (selArr,groupIdArr) in
+            print(selArr)
+            if let block = self.backSelectFilter{
+                block(selArr)
+            }
         }
+        
         labGroup.currentSelValueClosure = {
             (valueStr,index,groupId) in
-    //            print("\(valueStr) index = \(index), groupid = \(groupId)")
+                print("\(valueStr) index = \(index), groupid = \(groupId)")
         }
-        
-        
         let bottomView = UIView.init(frame: CGRect.init(x: 0, y: kScreenHeight - 48 * 2, width: screenWidth, height: 48 * 2))
         bottomView.backgroundColor = .white
         self.addSubview(bottomView)
@@ -115,16 +120,18 @@ class FilterView: UIView {
     }
     
  
+    // 确认
     @objc func confirmButtonDidClicked() {
-      
+        self.removeFromSuperview()
+        labGroup.comfirm()
     }
     
-    
+    // 重置
     @objc func resetBtnClick()  {
-        
+        labGroup.reload()
     }
     
     @objc func cancelBtnClick()  {
-        
+        self.removeFromSuperview()
     }
 }

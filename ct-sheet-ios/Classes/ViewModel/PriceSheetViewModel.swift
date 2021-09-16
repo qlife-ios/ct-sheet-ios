@@ -58,7 +58,7 @@ extension PriceSheetViewModel{
     struct input {
         
         // 房价看板
-        let housePriceConsoleObservable: Observable<(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)>?
+        let housePriceConsoleObservable: Observable<(curPage: Int, productIds: [String]?, channels: [Int]? ,fromDate: Int ,endDate: Int)>?
     
         // 修改房价
         let housePriceChangeObservable: Observable<(productId: String, dates: [Int], channel: Int ,price: Int)>?

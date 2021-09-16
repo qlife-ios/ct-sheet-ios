@@ -13,7 +13,7 @@ import ct_common_ios
 
 public enum PriceSheetApi {
     // 房价看板
-    case housePriceConsoleApi(curPage: Int, productIds: [String]?, channels: [String]? ,fromDate: Int ,endDate: Int)
+    case housePriceConsoleApi(curPage: Int, productIds: [String]?, channels: [Int]? ,fromDate: Int ,endDate: Int)
 
     // 修改房价
     case housePriceUpdateApi(productId: String, dates: [Int], channel: Int ,price: Int)
@@ -38,11 +38,11 @@ extension PriceSheetApi: TargetType, AuthenticationProtocol{
                 params["_meta"] = ["page":curPage, "limit":30]
                 params["from_date"] = fromDate
                 params["end_date"] = endDate
-                if let productIds = productIds {
+                if let productIds = productIds, productIds.count > 0 {
                     params["product_ids"] = productIds
                 }
 
-                if let channels = channels{
+                if let channels = channels, channels.count > 0{
                     params["channels"] = channels
                 }
                 
