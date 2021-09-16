@@ -21,8 +21,10 @@ public enum LoadType : Int {
     case normal                = 20         // 正常
     case rightType             = 30         // 右边
 }
+
 // 线宽
 var lineWidthHeight: CGFloat = 0.5
+
 public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     
     private var priceHouseEvent = PublishSubject<(curPage: Int, productIds: [String]?, channels: [Int]? ,fromDate: Int ,endDate: Int)>()
@@ -67,8 +69,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     
     // 选择了某写item
     var selectCells: [CXLinkageSheetRightItem] = []
-    
-    
+        
     // 改价
     // 选择的房型
     var selectProductId: String?
@@ -96,6 +97,9 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     var filterChannelArr: [Int]?
     
     var filterProductIdArr: [String]?
+    
+    // 筛选框选择的index
+    var selectIndexArr: [[Int]] = [[0], [0]]
 
     lazy var filterBtn: UIButton = {
         let filterBtn = UIButton()
@@ -249,6 +253,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         self.viewModel?.errorObservable.subscribe(onNext: {[unowned self] (model) in
             self.view.dissmissLoadingView()
             self.view.showfailMessage(message: model.zhMessage, handle: nil)
+            self.filterBtn.isHidden = true
         }).disposed(by: disposeBag)
         self.viewModel?.errorOutPut.subscribe(onNext: {[unowned self] (model) in
             self.view.dissmissLoadingView()
@@ -268,48 +273,57 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         }
         let titleArr = ["选择渠道","选择房型"]
         let contentArr = [channelNameArr,productNameArr]
-        
-        
-//        labGroup.defaultSelIndexArr = [[0,5,8,3,2],1,0,3]
-
-        
-        let resultView = FilterView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight), contetnArr: contentArr, titleArr: titleArr)
+        let resultView = FilterView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight), contetnArr: contentArr, titleArr: titleArr,defaultSelIndexArr: self.selectIndexArr)
         resultView.backSelectFilter = { (selArr ) in
             print(selArr)
             let channelArr = selArr[0] as! Array<String>
             let productArr = selArr[1] as! Array<String>
             self.filterChannelArr = []
             self.filterProductIdArr = []
+            var fistIndex = self.selectIndexArr[0]
+            fistIndex.removeAll()
+            var secondIndex = self.selectIndexArr[1]
+            secondIndex.removeAll()
             for str in channelArr  {
                 if str.contains("全部") {
                     self.filterChannelArr?.removeAll()
+                    fistIndex.append(0)
                     break
                 }
                 if str.contains("美团民宿"){
                     self.filterChannelArr?.append(40)
+                    fistIndex.append(1)
                     continue
                 }
                 if str.contains("小猪民宿")  {
                     self.filterChannelArr?.append(30)
+                    fistIndex.append(2)
                     continue
                 }
                 if str.contains("爱彼迎") {
                     self.filterChannelArr?.append(20)
+                    fistIndex.append(3)
                     continue
                 }
                 if str.contains("途家") {
                     self.filterChannelArr?.append(10)
+                    fistIndex.append(4)
                     continue
                 }
             }
             if self.allDate.count > 0 {
                 let modelArr = self.allDate[0]
-                    for everyModel in modelArr.produtPriceList {
+                for(index, everyModel) in modelArr.produtPriceList.enumerated() {
                         if productArr.contains(where: { $0.contains(everyModel.name)}){
                             self.filterProductIdArr?.append(everyModel.id)
+                            secondIndex.append(index + 1)
                         }
                     }
             }
+            if secondIndex.count == 0{
+                secondIndex = [0]
+            }
+            self.selectIndexArr = [fistIndex, secondIndex]
             self.firstModel = nil
             self.compentParamWithStartDate(startDate: self.startDate, endDate: self.endDate)
         }

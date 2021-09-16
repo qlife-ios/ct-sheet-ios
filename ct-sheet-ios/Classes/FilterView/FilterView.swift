@@ -28,7 +28,8 @@ class FilterView: UIView {
     // 筛选
     var labGroup = CBGroupAndStreamView()
     
-    public required init(frame: CGRect,contetnArr : Array<Any>, titleArr : Array<String>) {
+    
+    public required init(frame: CGRect,contetnArr : Array<Any>, titleArr : Array<String>, defaultSelIndexArr : Array<Any> ) {
         super.init(frame: frame)
         self.backgroundColor = UIColor.init(named: "ct_000000-60_FFFFFF-60")
         let header = UIView.init(frame: CGRect.init(x: 0, y:200, width: screenWidth, height: 48))
@@ -69,13 +70,14 @@ class FilterView: UIView {
 
         labGroup = CBGroupAndStreamView.init(frame: CGRect(x: 0, y: header.bottom , width: kScreenWidth, height: kScreenHeight - header.bottom  - 48 * 2))
         labGroup.titleTextFont = .systemFont(ofSize: 14)
-        labGroup.titleLabHeight = 30;
+        labGroup.titleLabHeight = 30
         labGroup.titleTextColor = .red
         labGroup.isSingle = true
         //使用该参数则默认为多选 isSingle 无效 defaultSelSingleIndeArr 设置无效
         labGroup.defaultSelIndexArr = [0,0]
         //分别设置每个组的单选与多选
         labGroup.defaultGroupSingleArr = [0,0]
+        labGroup.defaultSelIndexArr = defaultSelIndexArr
         labGroup.setDataSource(contetnArr: contetnArr, titleArr: titleArr)
         self.addSubview(labGroup)
         labGroup.confirmReturnValueClosure = { (selArr,groupIdArr) in
