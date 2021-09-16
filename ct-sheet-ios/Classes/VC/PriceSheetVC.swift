@@ -90,10 +90,6 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         return filterBtn
     }()
     
-    // 筛选
-    var labGroup = CBGroupAndStreamView()
-
-    
     open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         self.setNavColor()
     }
@@ -234,44 +230,39 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         }).disposed(by: disposeBag)
     }
     
-   @objc func filterAllDate()  {
-    
-    var channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
-    var productNameArr: [String] = ["全部"]
-    if self.allDate.count > 0 {
-        let modelArr = self.allDate[0]
-        for model in modelArr.produtPriceList{
-            productNameArr.append(model.name)
-        }
-    }
-    let titleArr = ["选择渠道","选择房型"]
-    let contentArr = [channelNameArr,productNameArr]
+    // 筛选
+    @objc func filterAllDate()  {
+        var channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
+        var productNameArr: [String] = ["全部"]
+        if self.allDate.count > 0 {
+            let modelArr = self.allDate[0]
+            for model in modelArr.produtPriceList{
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
+                productNameArr.append(model.name)
 
-     labGroup = CBGroupAndStreamView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height))
-    labGroup.titleTextFont = .systemFont(ofSize: 14)
-    labGroup.titleLabHeight = 30;
-    labGroup.titleTextColor = .red
-    labGroup.isSingle = true
-//        labGroup.defaultSelIndex = 1
-//        labGroup.defaultSelSingleIndeArr = [1,1,0,0]
-    //使用该参数则默认为多选 isSingle 无效 defaultSelSingleIndeArr 设置无效
-    labGroup.defaultSelIndexArr = [0,0]
-    //分别设置每个组的单选与多选
-    labGroup.defaultGroupSingleArr = [0,0]
-    labGroup.setDataSource(contetnArr: contentArr, titleArr: titleArr)
-    labGroup.delegate = self
-    
-    self.view.addSubview(labGroup)
-    labGroup.confirmReturnValueClosure = {
-        (selArr,groupIdArr) in
-//            print(selArr)
-    }
-    labGroup.currentSelValueClosure = {
-        (valueStr,index,groupId) in
-//            print("\(valueStr) index = \(index), groupid = \(groupId)")
-    }
-    
-        
+            }
+        }
+        let titleArr = ["选择渠道","选择房型"]
+        let contentArr = [channelNameArr,productNameArr]
+        let resultView = FilterView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight), contetnArr: contentArr, titleArr: titleArr)
+        let window  = UIApplication.shared.keyWindow!
+        window.addSubview(resultView)
     }
     // 组装请求参数
     func compentParamWithStartDate(startDate: Date = Date.init(), endDate: Date = Date.init()){
@@ -284,7 +275,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
 }
 
 extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate, kfZNumberKeyBoardDelegate {
-
+    
     public func erroTip(withMinPrice minPrice: Int, maxPrice: Int) {
         guard let keyWindow = UIApplication.shared.keyWindow else { return }
         keyWindow.dissmissLoadingView()
@@ -357,7 +348,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
             }
         }
     }
-
+    
     // 改价
     public func delegatechangePriceBtnClick(_ inputNum: Int) {
         // 键盘下去, 调用接口
@@ -431,8 +422,8 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
                     if priceModel.selected == true {
                         itemSubview.backgroundColor = UIColor.init(named: "buttonBg_F38C27")
                     }else {
-                       if priceModel.canChoose == false || priceModel.isBefore == true {
-                           itemSubview.backgroundColor = UIColor.init(named: "ct_F1F1F1")
+                        if priceModel.canChoose == false || priceModel.isBefore == true {
+                            itemSubview.backgroundColor = UIColor.init(named: "ct_F1F1F1")
                         }else {
                             itemSubview.backgroundColor = UIColor.white
                         }
@@ -712,13 +703,13 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
         contView.addSubview(surplusLab)
         if self.allDate.count > 0 {
             let modelArr = self.allDate[itemIndex]
-//            let isBefore: Bool = modelArr.isBefore // 今天之前的日期
-//            for everyModel in modelArr.produtPriceList {
-//                everyModel.isBefore = isBefore
-//                for channelModel in everyModel.channelPriceModel{
-//                    channelModel.isBefore = isBefore
-//                }
-//            }
+            //            let isBefore: Bool = modelArr.isBefore // 今天之前的日期
+            //            for everyModel in modelArr.produtPriceList {
+            //                everyModel.isBefore = isBefore
+            //                for channelModel in everyModel.channelPriceModel{
+            //                    channelModel.isBefore = isBefore
+            //                }
+            //            }
             let model = modelArr.produtPriceList[indexPath?.section ?? 0]
             let priceModel =  model.channelPriceModel[indexPath?.row ?? 0]
             if priceModel.price >= 0{
