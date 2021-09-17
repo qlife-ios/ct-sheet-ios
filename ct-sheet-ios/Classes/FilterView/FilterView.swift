@@ -9,7 +9,7 @@ import UIKit
 import boss_basic_common_ios
 import ct_common_ios
 
-public typealias BackSelectFilterBlock = (_ selectArr: Array<Any>) ->()
+public typealias BackSelectFilterBlock = (_ selectArr: Array<Any>,_ groupIdArr : Array<Any>) ->()
 
 class FilterView: UIView {
     // 标题栏高度
@@ -28,8 +28,14 @@ class FilterView: UIView {
     // 筛选
     var labGroup = CBGroupAndStreamView()
     
-    
-    public required init(frame: CGRect,contetnArr : Array<Any>, titleArr : Array<String>, defaultSelIndexArr : Array<Any> ) {
+    var defaultSelArr : [[Int]]? {
+        didSet{
+            if let arr = defaultSelArr{
+                labGroup.defaultSelIndexArr = arr
+            }
+        }
+    }
+    public required init(frame: CGRect,contetnArr : Array<Any>, titleArr : Array<String>, defaultSelIndexArr : [[Int]] ) {
         super.init(frame: frame)
         self.backgroundColor = UIColor.init(named: "ct_000000-60_FFFFFF-60")
         let header = UIView.init(frame: CGRect.init(x: 0, y:200, width: screenWidth, height: 48))
@@ -83,7 +89,7 @@ class FilterView: UIView {
         labGroup.confirmReturnValueClosure = { (selArr,groupIdArr) in
             print(selArr)
             if let block = self.backSelectFilter{
-                block(selArr)
+                block(selArr,groupIdArr)
             }
         }
         
@@ -124,7 +130,7 @@ class FilterView: UIView {
  
     // 确认
     @objc func confirmButtonDidClicked() {
-        self.removeFromSuperview()
+        self.isHidden = true
         labGroup.comfirm()
     }
     
@@ -134,6 +140,7 @@ class FilterView: UIView {
     }
     
     @objc func cancelBtnClick()  {
-        self.removeFromSuperview()
+        self.isHidden = true
+//        self.removeFromSuperview()
     }
 }

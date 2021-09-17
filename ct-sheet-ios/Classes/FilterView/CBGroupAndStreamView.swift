@@ -10,14 +10,13 @@ import UIKit
 
 @objc protocol CBGroupAndStreamViewDelegate : NSObjectProtocol {
 
-
     /// 传递所有选中的值
     ///
     /// - Parameters:
     ///   - selArr: 所有选中的值
     ///   - groupArr: gtoupIdArr
 
-    @objc optional func confimrReturnAllSelValueWithDelegate(selArr : Array<Any>, groupArr : Array<Any>)
+    @objc optional func confimrReturnAllSelValueWithDelegate(selArr : Array<Any>, groupArr : [[Int]])
 
     /// 当前选择的值
     ///
@@ -359,7 +358,6 @@ class CBGroupAndStreamView: UIView {
                 tempSaveArr.removeAll()
                 tempSaveArr.append(valueStr)
                 //闭包传值
-                
                 print(tempSaveArr)
                 if currentSelValueClosure != nil {
                     currentSelValueClosure!(valueStr,sender.tag % 100 - 1,sender.tag / 100)
@@ -450,10 +448,13 @@ class CBGroupAndStreamView: UIView {
     //MARK:---确定
     public func comfirm(){
         if (confirmReturnValueClosure != nil) {
+            
+            print("======")
+            print(saveSelButValueArr, saveSelGroupIndexeArr)
             confirmReturnValueClosure!(saveSelButValueArr,saveSelGroupIndexeArr)
         }
 
-        delegate?.confimrReturnAllSelValueWithDelegate?(selArr: saveSelButValueArr, groupArr: saveSelGroupIndexeArr)
+//        delegate?.confimrReturnAllSelValueWithDelegate?(selArr: saveSelButValueArr, groupArr: saveSelGroupIndexeArr)
 
     }
     //MARK:---重置

@@ -81,6 +81,11 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     var inputPrice: Int = 0
     
     var loadNum : Int = 0
+    
+    // 所有的房型名称 --用于筛选
+    var allProductName: [String] = []
+    // 所有的房型id --用于筛选
+    var allProductId: [String] = []
     // 加载状态
     var loadType: LoadType = .normal {
         didSet{
@@ -92,6 +97,9 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         }
     }
     
+    var filterView: FilterView?
+    
+    var isFirst: Bool = true
     
     // 筛选的时候
     var filterChannelArr: [Int]?
@@ -154,7 +162,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         if  isphoneX {
             viewHeight = screenHeight - 88 - 34
         }
-        
+        self.filterBtn.isHidden = true
         self.filterBtn.frame.origin.y = viewHeight - 60
         self.linkageSheetView = CXLinkageSheetView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: viewHeight))
         self.linkageSheetView.dataSource = self
@@ -176,7 +184,6 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     }
     
     func bindViewModel() {
-        
         let input = PriceSheetViewModel.input(housePriceConsoleObservable: self.priceHouseEvent, housePriceChangeObservable: self.priceChangeEvent)
         
         self.viewModel = PriceSheetViewModel.init(input: input)
@@ -217,6 +224,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
                 self.linkageSheetView.rightContentView.contentOffset.x = CGFloat(52 * indexA)
                 self.filterBtn.isHidden = false
                 self.linkageSheetView.isHidden = false
+                                
             }else{
                 // 空页面
                 self.filterBtn.isHidden = true
@@ -265,77 +273,117 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     
     // 筛选
     @objc func filterAllDate()  {
-        let channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
-        var productNameArr: [String] = ["全部"]
-        if self.allDate.count > 0 {
-            let modelArr = self.allDate[0]
-            for model in modelArr.produtPriceList{
-                productNameArr.append(model.name)
+        // 初始化筛选框
+        if (self.filterView == nil){
+            let channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
+            self.allProductName = ["全部"]
+            self.allProductId = [""]
+            if self.allDate.count > 0 {
+                let modelArr = self.allDate[0]
+                for model in modelArr.produtPriceList{
+                    self.allProductName.append(model.name)
+                    self.allProductId.append(model.id)
+                }
+            }
+            let titleArr = ["选择渠道","选择房型"]
+            let contentArr = [channelNameArr,self.allProductName]
+            self.filterView = FilterView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight), contetnArr: contentArr, titleArr: titleArr, defaultSelIndexArr: self.selectIndexArr)
+            let window  = UIApplication.shared.keyWindow!
+            if let resultView = self.filterView{
+                window.addSubview(resultView)
             }
         }
-        let titleArr = ["选择渠道","选择房型"]
-        let contentArr = [channelNameArr,productNameArr]
-        let resultView = FilterView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight), contetnArr: contentArr, titleArr: titleArr,defaultSelIndexArr: self.selectIndexArr)
-        resultView.backSelectFilter = { (selArr ) in
-            print(selArr)
+        self.filterView?.isHidden = false
+        self.filterView?.frame = CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight)
+        let window  = UIApplication.shared.keyWindow!
+        if let resultView = self.filterView{
+            window.bringSubviewToFront(resultView)
+        }
+        
+        self.filterView?.defaultSelArr = self.selectIndexArr
+        
+        self.filterView?.backSelectFilter = { (selArr, saveSelGroupIndexeArr) in
+            
+            if  ((saveSelGroupIndexeArr as? [[Int]]) != nil) {
+                // 选中的位置
+                self.selectIndexArr = saveSelGroupIndexeArr as? [[Int]] ?? [[]]
+            }
+           
             let channelArr = selArr[0] as! Array<String>
             let productArr = selArr[1] as! Array<String>
-            self.filterChannelArr = []
+            // 选择的渠道和房型ID
+            self.filterChannelArr?.removeAll()
+            
             self.filterProductIdArr = []
-            var fistIndex = self.selectIndexArr[0]
-            fistIndex.removeAll()
-            var secondIndex = self.selectIndexArr[1]
-            secondIndex.removeAll()
+//            var fistIndex = self.selectIndexArr[0]
+//            fistIndex.removeAll()
+//            var secondIndex = self.selectIndexArr[1]
+//            secondIndex.removeAll()
+//
+//            print(channelArr)
+//
+//            print(fistIndex)
+//
+//            print(secondIndex)
+            
             for str in channelArr  {
                 if str.contains("全部") {
                     self.filterChannelArr?.removeAll()
-                    fistIndex.append(0)
-                    break
+//                    fistIndex.append(0)
                 }
                 if str.contains("美团民宿"){
                     self.filterChannelArr?.append(40)
-                    fistIndex.append(1)
-                    continue
+//                    fistIndex.append(1)
                 }
                 if str.contains("小猪民宿")  {
                     self.filterChannelArr?.append(30)
-                    fistIndex.append(2)
-                    continue
+//                    fistIndex.append(2)
                 }
                 if str.contains("爱彼迎") {
                     self.filterChannelArr?.append(20)
-                    fistIndex.append(3)
-                    continue
+//                    fistIndex.append(3)
                 }
                 if str.contains("途家") {
                     self.filterChannelArr?.append(10)
-                    fistIndex.append(4)
-                    continue
+//                    fistIndex.append(4)
                 }
             }
-            if self.allDate.count > 0 {
-                let modelArr = self.allDate[0]
-                for(index, everyModel) in modelArr.produtPriceList.enumerated() {
-                        if productArr.contains(where: { $0.contains(everyModel.name)}){
-                            self.filterProductIdArr?.append(everyModel.id)
-                            secondIndex.append(index + 1)
+            for (index,nameStr) in self.allProductName.enumerated(){
+                if productArr.contains(where: { $0.contains(nameStr)}){
+                    if index > 0{
+                        let idP = self.allProductId[index]
+                        if idP.count > 0 {
+                            self.filterProductIdArr?.append(idP)
                         }
                     }
+//                    secondIndex.append(index)
+                }
             }
-            if secondIndex.count == 0{
-                secondIndex = [0]
-            }
-            self.selectIndexArr = [fistIndex, secondIndex]
+//            if secondIndex.count == 0{
+//                secondIndex = [0]
+//            }
+            
+//            self.selectIndexArr.removeAll()
+//            self.selectIndexArr = [fistIndex, secondIndex]
+            
+//            print(channelArr)
+//
+//            print(fistIndex)
+
+            print("========")
+            print(self.selectIndexArr)
+            print(self.filterChannelArr)
+            print(self.filterProductIdArr)
+            
+            // 调用接口
             self.firstModel = nil
             let currentDate = Date.init()
             self.startDate = Date.getRequestLaterDate(from: currentDate, withYear: 0, month: 0, day: -1)
             self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 29)
             self.loadType = .normal
             self.compentParamWithStartDate(startDate: self.startDate, endDate: self.endDate)
-            
         }
-        let window  = UIApplication.shared.keyWindow!
-        window.addSubview(resultView)
+       
     }
     // 组装请求参数
     func compentParamWithStartDate(startDate: Date = Date.init(), endDate: Date = Date.init()){
