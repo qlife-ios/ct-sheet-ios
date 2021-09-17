@@ -119,7 +119,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         // 今天
         let currentDate = Date.init()
         self.startDate = Date.getRequestLaterDate(from: currentDate, withYear: 0, month: 0, day: -1)
-        self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 28)
+        self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 29)
         self.loadType = .normal
         self.compentParamWithStartDate(startDate: startDate, endDate: self.endDate)
     }
@@ -327,8 +327,9 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
             }
             self.selectIndexArr = [fistIndex, secondIndex]
             self.firstModel = nil
-            self.startDate = Date.init()
-            self.endDate =  Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 30)
+            let currentDate = Date.init()
+            self.startDate = Date.getRequestLaterDate(from: currentDate, withYear: 0, month: 0, day: -1)
+            self.endDate = Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 29)
             self.loadType = .normal
             self.compentParamWithStartDate(startDate: self.startDate, endDate: self.endDate)
             
@@ -437,7 +438,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
      */
     // 加载之前的数据
     public func loadBeforeData() {
-        if self.loadNum > 4{
+        if self.loadNum > 2 {
             self.view.justTitleMessageView(message: "试试点击日期筛选", handle: nil)
             return
         }
@@ -449,7 +450,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
     
     // 加载之后的数据
     public func loadFurtureData() {
-        if self.loadNum > 4{
+        if self.loadNum > 2 {
             self.view.justTitleMessageView(message: "试试点击日期筛选", handle: nil)
             return
         }
