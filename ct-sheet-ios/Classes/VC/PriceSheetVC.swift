@@ -154,6 +154,8 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         if  isphoneX {
             viewHeight = screenHeight - 88 - 34
         }
+        
+        self.filterBtn.frame.origin.y = viewHeight - 60
         self.linkageSheetView = CXLinkageSheetView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: viewHeight))
         self.linkageSheetView.dataSource = self
         self.linkageSheetView.delegate = self
@@ -325,7 +327,11 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
             }
             self.selectIndexArr = [fistIndex, secondIndex]
             self.firstModel = nil
+            self.startDate = Date.init()
+            self.endDate =  Date.getRequestLaterDate(from: self.startDate, withYear: 0, month: 0, day: 30)
+            self.loadType = .normal
             self.compentParamWithStartDate(startDate: self.startDate, endDate: self.endDate)
+            
         }
         let window  = UIApplication.shared.keyWindow!
         window.addSubview(resultView)
@@ -401,7 +407,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
                                 if changeLab.tag == 7 {
                                     changeLab.textColor = UIColor.init(named: "ct_000000-85_FFFFFF-85")
                                     if changePrice == true {
-                                        changeLab.text = String(self.inputPrice)
+                                        changeLab.text = "¥ " + String(self.inputPrice)
                                     }
                                 }
                                 if changeLab.tag == 8 {
