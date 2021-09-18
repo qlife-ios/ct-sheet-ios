@@ -143,7 +143,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
-        self.title = "房价管理"
+        self.title = "房价"
         self.colorArr = ["ct_71BEFF","ct_FF839D","ct_FFDD5C"]
         self.filterChannelArr = []
         self.filterProductIdArr = []
@@ -765,10 +765,16 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
                 lab1.textColor = UIColor.init(named: "ct_F09A19")
                 lab2.font = mediumFont(size: 16)
             }else{
-                lab1.textColor = UIColor.init(named: "ct_000000-30")
-                contView.backgroundColor = .white
+                if model.showWeek == "五" || model.showWeek == "六"{
+                    contView.backgroundColor = UIColor.init(named: "ct_FFF5E6")
+                    lab1.textColor = UIColor.init(named: "ct_F09A19")
+                    lab2.font = mediumFont(size: 16)
+                }else{
+                    lab1.textColor = UIColor.init(named: "ct_000000-30")
+                    contView.backgroundColor = .white
+                    lab2.font = regularFont(size: 16)
+                }
                 lab1.text = model.showWeek
-                lab2.font = regularFont(size: 16)
             }
             
             lab2.text = String(model.dayStr)
