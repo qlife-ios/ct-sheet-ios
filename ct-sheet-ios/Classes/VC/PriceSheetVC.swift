@@ -678,6 +678,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
     
     // 日期选择
     @objc func selectDate()  {
+        self.delegateTagBlackBg()
         let singleCalenderView = SingleCalenderView.init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height:  UIScreen.main.bounds.height) , selectedStr: self.showDate)
         singleCalenderView.backSelectData = { str  in
             if self.showDate == str {
