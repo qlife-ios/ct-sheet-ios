@@ -12,8 +12,6 @@ import ct_common_ios
 public typealias BackSelectFilterBlock = (_ selectArr: Array<Any>,_ groupIdArr : Array<Any>) ->()
 
 class FilterView: UIView {
-    // 标题栏高度
-    let headerHeight:CGFloat = 47
     
     var titleLabel = UILabel()
     
@@ -35,6 +33,7 @@ class FilterView: UIView {
             }
         }
     }
+    
     public required init(frame: CGRect,contetnArr : Array<Any>, titleArr : Array<String>, defaultSelIndexArr : [[Int]] ) {
         super.init(frame: frame)
         self.backgroundColor = UIColor.init(named: "ct_000000-60_FFFFFF-60")

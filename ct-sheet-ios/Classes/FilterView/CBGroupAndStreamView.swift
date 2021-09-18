@@ -60,6 +60,8 @@ class CBGroupAndStreamView: UIView {
     public var content_titleFont : UIFont = UIFont(name: "PingFangSC-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12)
     /// 圆角
     public var content_radius : Int = 16
+    
+    
     /// 是否单选，默认 true 是单选
     public var isSingle : Bool = true
     /// 是否设置默认选中 默认 true 默认选中
@@ -69,6 +71,7 @@ class CBGroupAndStreamView: UIView {
     /// isDefaultChoice 为true时 改属性有效 defaultSelIndex 属性无效，为每各组设置单选选项
     public var defaultSelSingleIndeArr : Array = Array<Any>()
     /// 为每个组设置单选或多选，设置该属性时 isSingle 参数无效, 0 = 多选， 1 = 单选
+    
     public var defaultGroupSingleArr = Array<Int>(){
         didSet{
             for value in defaultGroupSingleArr {
@@ -109,7 +112,6 @@ class CBGroupAndStreamView: UIView {
     private var saveSelButValueArr : Array = Array<Any>()
     private var saveSelGroupIndexeArr : Array = Array<Any>()
 
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.scrollView.frame = CGRect.init(x: 0, y: 0, width: frame.size.width, height: frame.size.height)
@@ -137,7 +139,6 @@ class CBGroupAndStreamView: UIView {
         frameRect = .zero
         dataSourceArr.removeAll()
         dataSourceArr.append(contentsOf: tempContentArr)
-        //        print(dataSourceArr)
 
         for (index,title) in titleArr.enumerated() {
             saveSelButValueArr.append("")
@@ -149,7 +150,6 @@ class CBGroupAndStreamView: UIView {
     }
     //MARK:----设置数据源，创建
     func setupGroupAndStream(content : Array<Any>, titleStr : String, currFrame : CGRect, groupId : Int) -> CGRect{
-
         //组标题
         let groupTitleLab = UILabel.init(frame: CGRect(x: 15, y: currFrame.size.height + currFrame.origin.y + 13, width: 0, height: CGFloat(titleLabHeight)))
         groupTitleLab.text = titleStr
@@ -188,7 +188,6 @@ class CBGroupAndStreamView: UIView {
             margin_x = CGFloat(alineButWidth) + CGFloat(content_x)
 
             if but_width > UIScreen.main.bounds.size.width - CGFloat(2 * content_x) {
-
                 sender.titleLabel?.numberOfLines = 0
                 sender.titleEdgeInsets = .init(top: 0, left: 10, bottom: 0, right: 10)
                 but_width = UIScreen.main.bounds.size.width - CGFloat(2 * content_x)
@@ -205,7 +204,6 @@ class CBGroupAndStreamView: UIView {
                 alineButWidth = margin_x + but_width
                 content_totalHeight = current_rect.size.height + current_rect.origin.y + CGFloat(content_x)
             }
-            //            print("margin_x = \(margin_x)")
             sender.frame = CGRect(x: margin_x, y: content_totalHeight, width: but_width, height: CGFloat(but_height))
             //临时保存frame，以进行下一次坐标计算
             current_rect = sender.frame
@@ -229,6 +227,107 @@ class CBGroupAndStreamView: UIView {
         }
         return frameRect
     }
+    
+    
+    //MARK:---多选 -- 这个方法
+    private func multipleSelectEvent(sender : UIButton){
+        var valueStr = ""
+        var tempSaveArr = Array<Any>()
+        if ((saveSelButValueArr[sender.tag / 100]) is Array<Any>){
+            tempSaveArr = saveSelButValueArr[sender.tag / 100] as! Array<Any>
+        }else{
+            tempSaveArr.append(saveSelButValueArr[sender.tag / 100])
+        }
+        let tempDetailArr = dataSourceArr[sender.tag / 100] as! Array<Any>
+        valueStr = "\(sender.tag % 100 - 1)/\(tempDetailArr[sender.tag % 100 - 1])"
+       if sender.isSelected {
+            if sender.titleLabel?.text == "全部" {
+                for (index, _) in tempDetailArr.enumerated(){
+                    if index + 1 == sender.tag % 100{
+                        sender.isSelected = true
+                        sender.backgroundColor = content_backSelColor
+                        sender.layer.borderColor = board_backSelColor.cgColor
+                    }else{
+                        let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
+                        norSender.isSelected = false
+                        norSender.backgroundColor = content_backNorColor
+                        norSender.layer.borderColor = board_backNorColor.cgColor
+                    }
+                }
+                //不存在相同的元素
+                tempSaveArr.removeAll()
+                tempSaveArr.append(valueStr)
+                //闭包传值
+                saveSelButValueArr[sender.tag / 100] = tempSaveArr
+                if currentSelValueClosure != nil {
+                    currentSelValueClosure!(valueStr,sender.tag % 100 - 1,sender.tag / 100)
+                }
+                //代理传值
+                delegate?.currentSelValueWithDelegate?(valueStr: valueStr, index: sender.tag % 100 - 1, groupId: sender.tag / 100)
+                return
+            }else{
+                for (index, str) in tempDetailArr.enumerated(){
+                    if str as! String == "全部"{
+                        let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
+                        if norSender.isSelected == true {
+                            norSender.isSelected = false
+                            norSender.backgroundColor = content_backNorColor
+                            norSender.layer.borderColor = board_backNorColor.cgColor
+                            tempSaveArr.remove(at: index)
+                        }
+                    }
+                }
+                sender.isSelected = true
+                sender.backgroundColor = content_backSelColor
+                sender.layer.borderColor = board_backSelColor.cgColor
+                //不存在相同的元素
+                tempSaveArr.append(valueStr)
+                //闭包传值
+                if currentSelValueClosure != nil {
+                    currentSelValueClosure!(valueStr,sender.tag % 100 - 1,sender.tag / 100)
+                }
+                //代理传值
+                delegate?.currentSelValueWithDelegate?(valueStr: valueStr, index: sender.tag % 100 - 1, groupId: sender.tag / 100)
+            }
+        }else{
+            
+            if sender.titleLabel?.text == "全部" {
+                if tempSaveArr.count == 1 {
+                    print(tempSaveArr)
+                    sender.isSelected = true
+                    saveSelButValueArr[sender.tag / 100] = tempSaveArr
+                    tempSaveArr.isEmpty ? (saveSelGroupIndexeArr[sender.tag / 100] = "") : (saveSelGroupIndexeArr[sender.tag / 100] = String(sender.tag / 100))
+                    return
+                }else{
+                  print(tempSaveArr)
+                }
+            }else{
+                sender.isSelected = false
+                sender.backgroundColor = content_backNorColor
+                sender.layer.borderColor = board_backNorColor.cgColor
+                //获取元素的下标
+                let index : Int = tempSaveArr.firstIndex(where: {$0 as! String == valueStr})!
+                tempSaveArr.remove(at: index)
+                if tempSaveArr.count == 0 {
+                    for (index, str) in tempDetailArr.enumerated(){
+                        if str as! String == "全部"{
+                            let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
+                            norSender.isSelected = true
+                            norSender.backgroundColor = content_backSelColor
+                            norSender.layer.borderColor = board_backSelColor.cgColor
+                            tempSaveArr.append(str)
+                        }
+                    }
+                }
+            }
+        }
+        saveSelButValueArr[sender.tag / 100] = tempSaveArr
+        tempSaveArr.isEmpty ? (saveSelGroupIndexeArr[sender.tag / 100] = "") : (saveSelGroupIndexeArr[sender.tag / 100] = String(sender.tag / 100))
+
+    }
+
+    
+    
     //MARK:---设置默认---单选
     private func setDefaultSingleSelect(index : Int , groupId : Int ,value : String, sender : UIButton, content : Array<Any>){
         //单选
@@ -324,124 +423,6 @@ class CBGroupAndStreamView: UIView {
         saveSelButValueArr[sender.tag / 100] = valueStr
         //保存groupId
         saveSelButValueArr[sender.tag / 100] as! String == "" ? (saveSelGroupIndexeArr[sender.tag / 100] = "") : (saveSelGroupIndexeArr[sender.tag / 100] = String(sender.tag / 100))
-
-    }
-
-    //MARK:---多选 -- 这个方法
-    private func multipleSelectEvent(sender : UIButton){
-        var valueStr = ""
-        var tempSaveArr = Array<Any>()
-        if ((saveSelButValueArr[sender.tag / 100]) is Array<Any>){
-            tempSaveArr = saveSelButValueArr[sender.tag / 100] as! Array<Any>
-        }else{
-            tempSaveArr.append(saveSelButValueArr[sender.tag / 100])
-        }
-        
-        print(tempSaveArr)
-        let tempDetailArr = dataSourceArr[sender.tag / 100] as! Array<Any>
-        valueStr = "\(sender.tag % 100 - 1)/\(tempDetailArr[sender.tag % 100 - 1])"
-       if sender.isSelected {
-            if sender.titleLabel?.text == "全部" {
-                for (index, _) in tempDetailArr.enumerated(){
-                    if index + 1 == sender.tag % 100{
-                        sender.isSelected = true
-                        sender.backgroundColor = content_backSelColor
-                        sender.layer.borderColor = board_backSelColor.cgColor
-                    }else{
-                        let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
-                        norSender.isSelected = false
-                        norSender.backgroundColor = content_backNorColor
-                        norSender.layer.borderColor = board_backNorColor.cgColor
-                    }
-                }
-                //不存在相同的元素
-                tempSaveArr.removeAll()
-                tempSaveArr.append(valueStr)
-                //闭包传值
-                print(tempSaveArr)
-                if currentSelValueClosure != nil {
-                    currentSelValueClosure!(valueStr,sender.tag % 100 - 1,sender.tag / 100)
-                }
-                //代理传值
-                delegate?.currentSelValueWithDelegate?(valueStr: valueStr, index: sender.tag % 100 - 1, groupId: sender.tag / 100)
-                return
-            }else{
-                for (index, str) in tempDetailArr.enumerated(){
-                    if str as! String == "全部"{
-                        let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
-                        if norSender.isSelected == true {
-                            norSender.isSelected = false
-                            norSender.backgroundColor = content_backNorColor
-                            norSender.layer.borderColor = board_backNorColor.cgColor
-                            tempSaveArr.remove(at: index)
-                        }
-                    }
-                }
-                sender.isSelected = true
-                sender.backgroundColor = content_backSelColor
-                sender.layer.borderColor = board_backSelColor.cgColor
-                //不存在相同的元素
-                tempSaveArr.append(valueStr)
-                
-                print(tempSaveArr)
-
-                //闭包传值
-                if currentSelValueClosure != nil {
-                    currentSelValueClosure!(valueStr,sender.tag % 100 - 1,sender.tag / 100)
-                }
-                //代理传值
-                delegate?.currentSelValueWithDelegate?(valueStr: valueStr, index: sender.tag % 100 - 1, groupId: sender.tag / 100)
-            }
-        
-        // 之前的方法
-//            sender.backgroundColor = content_backSelColor
-//            sender.layer.borderColor = board_backSelColor.cgColor
-//
-//            //不存在相同的元素
-//            tempSaveArr.append(valueStr)
-//            //闭包传值
-//            if currentSelValueClosure != nil {
-//                currentSelValueClosure!(valueStr,sender.tag % 100 - 1,sender.tag / 100)
-//            }
-//            //代理传值
-//            delegate?.currentSelValueWithDelegate?(valueStr: valueStr, index: sender.tag % 100 - 1, groupId: sender.tag / 100)
-        }else{
-            
-            if sender.titleLabel?.text == "全部" {
-                if tempSaveArr.count == 1 {
-                    print(tempSaveArr)
-                    sender.isSelected = true
-                    saveSelButValueArr[sender.tag / 100] = tempSaveArr
-                    tempSaveArr.isEmpty ? (saveSelGroupIndexeArr[sender.tag / 100] = "") : (saveSelGroupIndexeArr[sender.tag / 100] = String(sender.tag / 100))
-                   return
-                }else{
-                  print(tempSaveArr)
-                }
-            }else{
-                sender.isSelected = false
-                sender.backgroundColor = content_backNorColor
-                sender.layer.borderColor = board_backNorColor.cgColor
-                //获取元素的下标
-                let index : Int = tempSaveArr.firstIndex(where: {$0 as! String == valueStr})!
-                tempSaveArr.remove(at: index)
-                if tempSaveArr.count == 0 {
-                    for (index, str) in tempDetailArr.enumerated(){
-                        if str as! String == "全部"{
-                            let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
-                            norSender.isSelected = true
-                            norSender.backgroundColor = content_backSelColor
-                            norSender.layer.borderColor = board_backSelColor.cgColor
-                            tempSaveArr.append(str)
-                        }
-                    }
-                }
-            }
-        }
-
-        print(tempSaveArr)
-
-        saveSelButValueArr[sender.tag / 100] = tempSaveArr
-        tempSaveArr.isEmpty ? (saveSelGroupIndexeArr[sender.tag / 100] = "") : (saveSelGroupIndexeArr[sender.tag / 100] = String(sender.tag / 100))
 
     }
 

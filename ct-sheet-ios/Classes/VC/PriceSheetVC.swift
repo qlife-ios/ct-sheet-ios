@@ -298,82 +298,57 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         let window  = UIApplication.shared.keyWindow!
         if let resultView = self.filterView{
             window.bringSubviewToFront(resultView)
-        }
-        
-        self.filterView?.defaultSelArr = self.selectIndexArr
-        
+        }        
         self.filterView?.backSelectFilter = { (selArr, saveSelGroupIndexeArr) in
             
-            if  ((saveSelGroupIndexeArr as? [[Int]]) != nil) {
-                // 选中的位置
-                self.selectIndexArr = saveSelGroupIndexeArr as? [[Int]] ?? [[]]
-            }
-           
             let channelArr = selArr[0] as! Array<String>
             let productArr = selArr[1] as! Array<String>
             // 选择的渠道和房型ID
             self.filterChannelArr?.removeAll()
-            
+            self.filterProductIdArr?.removeAll()
             self.filterProductIdArr = []
-//            var fistIndex = self.selectIndexArr[0]
-//            fistIndex.removeAll()
-//            var secondIndex = self.selectIndexArr[1]
-//            secondIndex.removeAll()
-//
-//            print(channelArr)
-//
-//            print(fistIndex)
-//
-//            print(secondIndex)
+            // 选择各个位置
+            var fistIndex = self.selectIndexArr[0]
+            fistIndex.removeAll()
+            var secondIndex = self.selectIndexArr[1]
+            secondIndex.removeAll()
             
             for str in channelArr  {
                 if str.contains("全部") {
                     self.filterChannelArr?.removeAll()
-//                    fistIndex.append(0)
+                    fistIndex.append(0)
                 }
                 if str.contains("美团民宿"){
                     self.filterChannelArr?.append(40)
-//                    fistIndex.append(1)
+                    fistIndex.append(1)
                 }
                 if str.contains("小猪民宿")  {
                     self.filterChannelArr?.append(30)
-//                    fistIndex.append(2)
+                    fistIndex.append(2)
                 }
                 if str.contains("爱彼迎") {
                     self.filterChannelArr?.append(20)
-//                    fistIndex.append(3)
+                    fistIndex.append(3)
                 }
                 if str.contains("途家") {
                     self.filterChannelArr?.append(10)
-//                    fistIndex.append(4)
+                    fistIndex.append(4)
                 }
             }
+
             for (index,nameStr) in self.allProductName.enumerated(){
                 if productArr.contains(where: { $0.contains(nameStr)}){
-                    if index > 0{
+                    if index > 0 {
                         let idP = self.allProductId[index]
                         if idP.count > 0 {
                             self.filterProductIdArr?.append(idP)
                         }
                     }
-//                    secondIndex.append(index)
+                    secondIndex.append(index)
                 }
             }
-//            if secondIndex.count == 0{
-//                secondIndex = [0]
-//            }
-            
-//            self.selectIndexArr.removeAll()
-//            self.selectIndexArr = [fistIndex, secondIndex]
-            
-//            print(channelArr)
-//
-//            print(fistIndex)
-
-            print("========")
-            print(self.selectIndexArr)
-            print(self.filterChannelArr)
-            print(self.filterProductIdArr)
+            self.selectIndexArr.removeAll()
+            self.selectIndexArr = [fistIndex, secondIndex]
             
             // 调用接口
             self.firstModel = nil
@@ -383,8 +358,9 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
             self.loadType = .normal
             self.compentParamWithStartDate(startDate: self.startDate, endDate: self.endDate)
         }
-       
     }
+    
+    
     // 组装请求参数
     func compentParamWithStartDate(startDate: Date = Date.init(), endDate: Date = Date.init()){
         // T ~ T + 30
