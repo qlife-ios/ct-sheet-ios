@@ -711,7 +711,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
         nameView.textColor = UIColor.init(named: "ct_000000-65")
         nameView.font = mediumFont(size: 14)
         nameView.text = productModel.name
-        nameView.isUserInteractionEnabled = false
+        nameView.isEditable = false
         nameView.textAlignment = .center
         let contentSize: CGSize = nameView.contentSize
         if contentSize.height < allHeight {
