@@ -241,7 +241,7 @@ class CBGroupAndStreamView: UIView {
         let tempDetailArr = dataSourceArr[sender.tag / 100] as! Array<Any>
         valueStr = "\(sender.tag % 100 - 1)/\(tempDetailArr[sender.tag % 100 - 1])"
        if sender.isSelected {
-            if sender.titleLabel?.text == "全部" {
+            if sender.titleLabel?.text == "全部渠道" ||  sender.titleLabel?.text == "全部房型"  {
                 for (index, _) in tempDetailArr.enumerated(){
                     if index + 1 == sender.tag % 100{
                         sender.isSelected = true
@@ -267,7 +267,7 @@ class CBGroupAndStreamView: UIView {
                 return
             }else{
                 for (index, str) in tempDetailArr.enumerated(){
-                    if str as! String == "全部"{
+                    if str as! String == "全部渠道" || str as! String == "全部房型"{
                         let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
                         if norSender.isSelected == true {
                             norSender.isSelected = false
@@ -291,7 +291,7 @@ class CBGroupAndStreamView: UIView {
             }
         }else{
             
-            if sender.titleLabel?.text == "全部" {
+            if  sender.titleLabel?.text == "全部渠道" ||  sender.titleLabel?.text == "全部房型" {
                 if tempSaveArr.count == 1 {
                     print(tempSaveArr)
                     sender.isSelected = true
@@ -310,7 +310,7 @@ class CBGroupAndStreamView: UIView {
                 tempSaveArr.remove(at: index)
                 if tempSaveArr.count == 0 {
                     for (index, str) in tempDetailArr.enumerated(){
-                        if str as! String == "全部"{
+                        if str as! String == "全部渠道" || str as! String == "全部房型" {
                             let norSender = scrollView.viewWithTag((sender.tag / 100) * 100 + index + 1) as! UIButton
                             norSender.isSelected = true
                             norSender.backgroundColor = content_backSelColor

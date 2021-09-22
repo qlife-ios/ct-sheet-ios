@@ -275,8 +275,8 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
     @objc func filterAllDate()  {
         // 初始化筛选框
         if (self.filterView == nil){
-            let channelNameArr: [String] = ["全部","美团民宿","小猪民宿","爱彼迎","途家"]
-            self.allProductName = ["全部"]
+            let channelNameArr: [String] = ["全部渠道","美团民宿","小猪民宿","爱彼迎","途家"]
+            self.allProductName = ["全部房型"]
             self.allProductId = [""]
             if self.allDate.count > 0 {
                 let modelArr = self.allDate[0]
@@ -493,7 +493,6 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
     // 点击事件
     // 左侧表格视图点击事件
     public func leftTableView(_ tableView: UITableView?, didSelectRowAt indexPath: IndexPath?) {
-        
         
     }
     
