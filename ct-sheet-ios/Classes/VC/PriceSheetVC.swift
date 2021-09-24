@@ -248,6 +248,8 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         
         self.viewModel?.pricesChangeOutput.subscribe(onNext: {[unowned self] (model) in
             self.view.dissmissLoadingView()
+            
+            self.view.showSuccessMessage(message: "改价成功", handle: nil)
             // 刷新页面
             for (_,dayModel) in self.allDate.enumerated() {
                 let model = dayModel.produtPriceList[self.selectIndexPath?.section ?? 0]
