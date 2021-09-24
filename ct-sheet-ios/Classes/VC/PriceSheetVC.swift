@@ -132,6 +132,15 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
         self.compentParamWithStartDate(startDate: startDate, endDate: self.endDate)
     }
     
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.filterView?.removeFromSuperview()
+        self.filterView = nil
+        self.filterChannelArr = nil
+        self.filterProductIdArr = nil
+    }
+    
+    
     func setNavColor()  {
         let showdowColor = UIColor(named: "linecolor_E8E8E8_2B2B2B") ?? .darkGray
         self.navigationController?.navigationBar.setBackgroundColorAndshowdowColor(BackgroundColor: UIColor.white, showdowColor: showdowColor)
@@ -287,12 +296,15 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
             }
             let titleArr = ["选择渠道","选择房型"]
             let contentArr = [channelNameArr,self.allProductName]
+            self.selectIndexArr = [[0],[0]]
             self.filterView = FilterView.init(frame: CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight), contetnArr: contentArr, titleArr: titleArr, defaultSelIndexArr: self.selectIndexArr)
             let window  = UIApplication.shared.keyWindow!
             if let resultView = self.filterView{
                 window.addSubview(resultView)
             }
         }
+        
+        self.filterView?.defaultSelArr = self.selectIndexArr
         self.filterView?.isHidden = false
         self.filterView?.frame = CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight)
         let window  = UIApplication.shared.keyWindow!
@@ -307,6 +319,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
             self.filterChannelArr?.removeAll()
             self.filterProductIdArr?.removeAll()
             self.filterProductIdArr = []
+            self.filterChannelArr = []
             // 选择各个位置
             var fistIndex = self.selectIndexArr[0]
             fistIndex.removeAll()
@@ -349,7 +362,6 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
             }
             self.selectIndexArr.removeAll()
             self.selectIndexArr = [fistIndex, secondIndex]
-            
             // 调用接口
             self.firstModel = nil
             let currentDate = Date.init()
