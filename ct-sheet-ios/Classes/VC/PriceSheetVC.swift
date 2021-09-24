@@ -304,7 +304,7 @@ public class PriceSheetVC: BossViewController, CBGroupAndStreamViewDelegate {
             }
         }
         
-        self.filterView?.defaultSelArr = self.selectIndexArr
+//        self.filterView?.defaultSelArr = self.selectIndexArr
         self.filterView?.isHidden = false
         self.filterView?.frame = CGRect.init(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight)
         let window  = UIApplication.shared.keyWindow!
