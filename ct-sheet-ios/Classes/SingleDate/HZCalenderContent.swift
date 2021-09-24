@@ -16,6 +16,8 @@ protocol HZCalenderContentDelegate: NSObjectProtocol {
 
 class HZCalenderContent: UIView {
         
+    var scrollToScrollStop: Bool = false
+    
     private let b_title: UILabel = {
        let button = UILabel.init()
         button.font = UIFont.systemFont(ofSize: 20)
@@ -164,13 +166,33 @@ class HZCalenderContent: UIView {
         cur_year_month = cur_year_month.previousYear()
     }
     
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        if (scrollView.contentOffset.x < scrollView.bounds.size.width) {// 向左
-            cur_year_month = cur_year_month.previousMonth()
-        } else if (scrollView.contentOffset.x > scrollView.bounds.size.width) {
-            cur_year_month = cur_year_month.nextMonth()
+    
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        if velocity.y > 0 || velocity.y < 0 {
+            scrollToScrollStop = true
+        }else{
+            scrollToScrollStop = false
         }
-        scrollView.setContentOffset(collectionM.frame.origin, animated: false)
+    }
+    
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+        if scrollView.contentOffset.y > 0 || scrollView.contentOffset.y < 0 {
+            scrollToScrollStop = true
+        }else{
+            scrollToScrollStop = false
+        }
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        if scrollToScrollStop == false{
+            if (scrollView.contentOffset.x < scrollView.bounds.size.width) {// 向左
+                cur_year_month = cur_year_month.previousMonth()
+
+            } else if (scrollView.contentOffset.x > scrollView.bounds.size.width) {
+                cur_year_month = cur_year_month.nextMonth()
+            }
+            scrollView.setContentOffset(collectionM.frame.origin, animated: false)
+        }
     }
 
     override func layoutSubviews() {
@@ -188,7 +210,7 @@ class HZCalenderContent: UIView {
         }
         let height = self.bounds.size.height - 40 - 49
         scrollView.frame = CGRect.init(x: 0, y: 89, width: width, height: height)
-        scrollView.contentSize = CGSize.init(width: width*3, height: height)
+        scrollView.contentSize = CGSize.init(width: width*3, height: 0)
         collectionL.frame = CGRect.init(x: 0, y: 0, width: width, height: height)
         collectionM.frame = CGRect.init(x: width, y: 0, width: width, height: height)
         collectionR.frame = CGRect.init(x: width*2, y: 0, width: width, height: height)
@@ -206,7 +228,6 @@ class HZCalenderContent: UIView {
         for label in dayLabels {
             self.addSubview(label)
         }
-        
         scrollView.delegate = self
         scrollView.isPagingEnabled = true
         scrollView.showsHorizontalScrollIndicator = false
@@ -214,7 +235,7 @@ class HZCalenderContent: UIView {
         self.addSubview(scrollView)
         collectionL.delegate = self
         collectionL.dataSource = self
-        collectionL.backgroundColor = UIColor.white
+        collectionL.backgroundColor = UIColor.clear
         collectionL.register(HZCalenderCell.classForCoder(), forCellWithReuseIdentifier: reuseId)
         collectionM.delegate = self
         collectionM.dataSource = self
@@ -222,7 +243,7 @@ class HZCalenderContent: UIView {
         collectionM.register(HZCalenderCell.classForCoder(), forCellWithReuseIdentifier: reuseId)
         collectionR.delegate = self
         collectionR.dataSource = self
-        collectionR.backgroundColor = UIColor.white
+        collectionR.backgroundColor = UIColor.clear
         collectionR.register(HZCalenderCell.classForCoder(), forCellWithReuseIdentifier: reuseId)
         scrollView.addSubview(collectionL)
         scrollView.addSubview(collectionM)
