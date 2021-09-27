@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'ct-sheet-ios'
-  s.version          = '0.1.0'
+  s.version          = '1.12'
   s.summary          = 'A short description of ct-sheet-ios.'
 
 # This description is used to generate tags and improve search results.
@@ -28,15 +28,14 @@ TODO: Add long description of the pod here.
   s.source           = { :git => 'https://github.com/1041700361@qq.com/ct-sheet-ios.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '9.0'
+  s.ios.deployment_target = '11.0'
 
   s.source_files = 'ct-sheet-ios/Classes/**/*'
   
-  # s.resource_bundles = {
-  #   'ct-sheet-ios' => ['ct-sheet-ios/Assets/*.png']
-  # }
+   s.resource_bundles = {
+     'ct-sheet-ios' => ['ct-sheet-ios/Assets/*']
+   }
+   
+  s.dependency 'ct-common-ios'
 
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
 end
