@@ -462,7 +462,13 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
     
     // 改价
     public func delegatechangePriceBtnClick(_ inputNum: Int) {
+        
+        if self.dateArr.count > 90{
+            self.view.justTitleMessageView(message: "每次最大允许修改90天价格", handle: nil)
+            return
+        }
         // 键盘下去, 调用接口
+        
         self.inputPrice = inputNum
         if let proId = self.selectProductId{
             self.view.showLoadingMessage(message: "加载中...")
@@ -606,6 +612,7 @@ extension PriceSheetVC: CXLinkageSheetViewDataSource,CXLinkageSheetViewDelegate,
                     self.view.addSubview(board)
                 }
             }
+            
             self.keyBoard?.minPrice = priceModel.minPrice
             self.keyBoard?.maxPrice = priceModel.maxPrice
             if self.dateArr.count == 1 {

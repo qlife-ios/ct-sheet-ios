@@ -76,19 +76,20 @@ import boss_basic_common_ios
         }
 		channel = json["channel"].intValue
         
+        // 统一改为 75 ~ 50000
         switch channel {
             case 10: // 1 ~ 50000
-                self.minPrice = 1
+                self.minPrice = 75
                 self.maxPrice = 50000
             case 20: // 75 ~ 50000
                 self.minPrice = 75
                 self.maxPrice = 50000
                 
             case 30: // 1 ~ 50000
-                self.minPrice = 1
+                self.minPrice = 75
                 self.maxPrice = 50000
             case 40: //10 ~ 500000
-                self.minPrice = 10
+                self.minPrice = 75
                 self.maxPrice = 50000
             case .some(_):
                 break
